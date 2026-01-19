@@ -51,10 +51,46 @@ function VerifyPageContent() {
         }
     }, [resendTimer]);
 
-    // Move to profile step (NO API call here)
-    const handleOTPComplete = (value: string) => {
-        if (value.length === 6) {
-            setStep("profile");
+    // Move to profile step or login if existing user
+    const handleOTPComplete = async (value: string) => {
+        if (value.length !== 6) return;
+
+        setLoading(true);
+        setError(false);
+
+        try {
+            // Try verifying without name/role first
+            const response = await api.verifyOTP(phone, value);
+
+            if (response.token && !response.isNew) {
+                // Existing user - Login directly
+                setToken(response.token);
+                setUser(response.user);
+                showToast("Welcome back!", "success");
+
+                const redirectPath = getRedirectPath(response.user);
+                router.push(redirectPath);
+            } else {
+                // New user - move to profile step
+                setStep("profile");
+            }
+        } catch (err) {
+            const apiError = err as APIError;
+            const errorMsg = apiError.error || "Verification failed";
+
+            // If it's a new user, we expect an error or isNew flag
+            // Allow moving to profile step if the error is about missing info
+            if (errorMsg.toLowerCase().includes("name") ||
+                errorMsg.toLowerCase().includes("role") ||
+                errorMsg.toLowerCase().includes("not found") ||
+                errorMsg.toLowerCase().includes("required")) {
+                setStep("profile");
+            } else {
+                showToast(errorMsg, "error");
+                setError(true);
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -138,153 +174,189 @@ function VerifyPageContent() {
     if (!phone) return null;
 
     return (
-        <div className="glass-card p-6 sm:p-8">
-            {/* Back Button */}
-            <button
-                onClick={() => step === "profile" ? setStep("otp") : router.push("/login")}
-                className="inline-flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors mb-6"
-            >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span>Back</span>
-            </button>
-
-            {/* Header */}
-            <div className="text-center mb-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        {step === "otp" ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        )}
-                    </svg>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] mb-2">
-                    {step === "otp" ? "Verify OTP" : "Complete Your Profile"}
-                </h1>
-                <p className="text-[var(--foreground-muted)]">
-                    {step === "otp" ? `Code sent to ${maskedPhone}` : "Just a few details to get started"}
-                </p>
-            </div>
-
-            {/* OTP Step */}
-            {step === "otp" && (
-                <div className="space-y-6 animate-fade-in">
-                    <OTPInput
-                        value={otp}
-                        onChange={(val) => { setOtp(val); setError(false); }}
-                        onComplete={handleOTPComplete}
-                        error={error}
-                        disabled={loading}
-                    />
-
-                    <div className="text-center">
-                        {canResend ? (
-                            <button onClick={handleResendOTP} className="link text-sm">Resend OTP</button>
-                        ) : (
-                            <p className="text-sm text-[var(--foreground-muted)]">
-                                Resend in <span className="font-medium text-[var(--foreground)]">{resendTimer}s</span>
-                            </p>
-                        )}
-                    </div>
-
-                    <Button onClick={() => handleOTPComplete(otp)} disabled={otp.length !== 6}>
-                        Continue
-                    </Button>
-                </div>
-            )}
-
-            {/* Profile Step */}
-            {step === "profile" && (
-                <div className="space-y-5 animate-fade-in">
-                    {/* Name */}
-                    <div>
-                        <label className="form-label">Full Name <span className="text-[var(--error)]">*</span></label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => { setName(e.target.value); setErrors(p => ({ ...p, name: undefined })); }}
-                            placeholder="Enter your full name"
-                            disabled={loading}
-                            autoFocus
-                            className={`w-full glass-input px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] ${errors.name ? "error" : ""}`}
-                        />
-                        {errors.name && <p className="form-error">{errors.name}</p>}
-                    </div>
-
-                    {/* Role */}
-                    <div>
-                        <label className="form-label">I am a</label>
-                        <div className="role-tabs">
-                            <button
-                                type="button"
-                                onClick={() => { setRole("owner"); setInviteCode(""); setErrors(p => ({ ...p, inviteCode: undefined })); }}
-                                disabled={loading}
-                                className={`role-tab ${role === "owner" ? "active" : ""}`}
-                            >
-                                <span className="flex items-center justify-center gap-2">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                    </svg>
-                                    Owner
-                                </span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setRole("agent")}
-                                disabled={loading}
-                                className={`role-tab ${role === "agent" ? "active" : ""}`}
-                            >
-                                <span className="flex items-center justify-center gap-2">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                    Agent
-                                </span>
-                            </button>
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[var(--background)]">
+            <div className="max-w-[420px] w-full animate-fade-in">
+                {/* Brand / Title */}
+                <div className="text-center mb-8 sm:mb-12">
+                    <div className="mb-8 flex flex-col items-center">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] sm:rounded-3xl bg-[var(--primary)] flex items-center justify-center mb-4 sm:mb-6 shadow-xl shadow-navy-900/20 rotate-3">
+                            <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {step === "otp" ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                )}
+                            </svg>
                         </div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xl sm:text-2xl">🇮🇳</span>
+                            <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] text-[var(--secondary)] uppercase">India's Premium Stays</span>
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl font-black text-[var(--primary)] tracking-tight">
+                            {step === "otp" ? "Verify Code" : "Finish Setup"}
+                        </h1>
                     </div>
+                    <p className="text-sm sm:text-base text-[var(--foreground-muted)] font-medium px-4">
+                        {step === "otp" ? (
+                            <>Security code sent to <span className="text-[var(--primary)] font-bold">{maskedPhone}</span></>
+                        ) : (
+                            "One last step to personalize your experience"
+                        )}
+                    </p>
+                </div>
 
-                    {/* Invite Code for agents */}
-                    {role === "agent" && (
-                        <div className="animate-slide-up">
-                            <label className="form-label">Invite Code <span className="text-[var(--error)]">*</span></label>
-                            <input
-                                type="text"
-                                value={inviteCode}
-                                onChange={(e) => { setInviteCode(e.target.value.toUpperCase()); setErrors(p => ({ ...p, inviteCode: undefined })); }}
-                                placeholder="Enter invite code from owner"
+                {/* Main Card */}
+                <div className="glass-card p-6 sm:p-10 space-y-6 sm:space-y-8 shadow-2xl">
+                    {/* Back Button - Minimal */}
+                    <button
+                        onClick={() => step === "profile" ? setStep("otp") : router.push("/login")}
+                        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors group"
+                    >
+                        <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        <span>Change {step === "otp" ? "Phone" : "Step"}</span>
+                    </button>
+
+                    {/* OTP Step */}
+                    {step === "otp" && (
+                        <div className="space-y-8 animate-fade-in">
+                            <OTPInput
+                                value={otp}
+                                onChange={(val) => { setOtp(val); setError(false); }}
+                                onComplete={handleOTPComplete}
+                                error={error}
                                 disabled={loading}
-                                className={`w-full glass-input px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] uppercase ${errors.inviteCode ? "error" : ""}`}
                             />
-                            {errors.inviteCode && <p className="form-error">{errors.inviteCode}</p>}
+
+                            <div className="text-center">
+                                {canResend ? (
+                                    <button onClick={handleResendOTP} className="text-sm font-bold text-[var(--secondary)] hover:text-[var(--primary)] transition-colors underline underline-offset-4 decoration-2">
+                                        Resend New Code
+                                    </button>
+                                ) : (
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--secondary-muted)] text-[var(--secondary)] text-xs font-bold">
+                                        <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Resend in {resendTimer}s
+                                    </div>
+                                )}
+                            </div>
+
+                            <Button onClick={() => handleOTPComplete(otp)} disabled={otp.length !== 6} loading={loading}>
+                                <span className="flex items-center justify-center gap-2">
+                                    Verify & Continue
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                </span>
+                            </Button>
                         </div>
                     )}
 
-                    <Button onClick={handleSubmit} loading={loading}>
-                        Create Account
-                    </Button>
+                    {/* Profile Step */}
+                    {step === "profile" && (
+                        <div className="space-y-6 animate-fade-in">
+                            {/* Role Selection - Modern Radio Blocks */}
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground-muted)] px-1">Choose Account Type</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setRole("owner"); setInviteCode(""); setErrors(p => ({ ...p, inviteCode: undefined })); }}
+                                        disabled={loading}
+                                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group ${role === "owner"
+                                            ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-lg shadow-navy-900/20"
+                                            : "border-[var(--border)] bg-transparent text-[var(--foreground-muted)] hover:border-[var(--primary-400)]"
+                                            }`}
+                                    >
+                                        <svg className={`w-6 h-6 ${role === "owner" ? "text-[var(--secondary)]" : "group-hover:text-[var(--primary)]"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        </svg>
+                                        <span className="text-sm font-bold">Owner</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRole("agent")}
+                                        disabled={loading}
+                                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group ${role === "agent"
+                                            ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-lg shadow-navy-900/20"
+                                            : "border-[var(--border)] bg-transparent text-[var(--foreground-muted)] hover:border-[var(--primary-400)]"
+                                            }`}
+                                    >
+                                        <svg className={`w-6 h-6 ${role === "agent" ? "text-[var(--secondary)]" : "group-hover:text-[var(--primary)]"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span className="text-sm font-bold">Agent</span>
+                                    </button>
+                                </div>
+                            </div>
 
-                    <div className="p-4 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)]">
-                        <p className="text-sm text-[var(--foreground-muted)]">
-                            {role === "owner"
-                                ? <><strong className="text-[var(--foreground)]">Owners</strong> can list properties and invite agents.</>
-                                : <><strong className="text-[var(--foreground)]">Agents</strong> can book properties for clients.</>
-                            }
-                        </p>
-                    </div>
+                            {/* Name Input */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground-muted)] px-1">Personal Details</label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => { setName(e.target.value); setErrors(p => ({ ...p, name: undefined })); }}
+                                    placeholder="Enter your full name"
+                                    disabled={loading}
+                                    autoFocus
+                                    className={`w-full glass-input !py-4 px-5 text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] font-medium ${errors.name ? "error" : ""}`}
+                                />
+                                {errors.name && <p className="form-error px-1 text-[10px] font-bold uppercase tracking-tight">{errors.name}</p>}
+                            </div>
+
+                            {/* Invite Code for agents */}
+                            {role === "agent" && (
+                                <div className="space-y-2 animate-slide-up">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground-muted)] px-1">Invite Credentials</label>
+                                    <input
+                                        type="text"
+                                        value={inviteCode}
+                                        onChange={(e) => { setInviteCode(e.target.value.toUpperCase()); setErrors(p => ({ ...p, inviteCode: undefined })); }}
+                                        placeholder="ENTER INVITE CODE"
+                                        disabled={loading}
+                                        className={`w-full glass-input !py-4 px-5 text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] font-black tracking-widest uppercase ${errors.inviteCode ? "error" : ""}`}
+                                    />
+                                    {errors.inviteCode && <p className="form-error px-1 text-[10px] font-bold uppercase tracking-tight">{errors.inviteCode}</p>}
+                                </div>
+                            )}
+
+                            <Button onClick={handleSubmit} loading={loading}>
+                                <span className="flex items-center justify-center gap-2">
+                                    Complete Creation
+                                    <svg className="w-5 h-5 text-[var(--secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </span>
+                            </Button>
+
+                            {/* Description Block */}
+                            <div className="p-4 rounded-2xl bg-[var(--secondary-muted)]/30 border border-[var(--border)]">
+                                <p className="text-[11px] leading-relaxed text-[var(--foreground-muted)] font-medium">
+                                    {role === "owner"
+                                        ? <><strong className="text-[var(--primary)] uppercase font-black tracking-tighter mr-1">Owner Access:</strong> List unlimited villas, manage pricing, and invite sub-agents to your portfolio.</>
+                                        : <><strong className="text-[var(--primary)] uppercase font-black tracking-tighter mr-1">Agent Access:</strong> Search thousands of verified properties and book instantly for your clients.</>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            )}
 
-            <div className="mt-8 pt-6 border-t border-[var(--glass-border)] text-center">
-                <p className="text-xs text-[var(--foreground-muted)]">
-                    {step === "otp"
-                        ? <>Didn&apos;t receive the code? <Link href="/login" className="link-muted hover:text-[var(--primary-500)]">Try different number</Link></>
-                        : <>By continuing, you agree to our <a href="#" className="link-muted hover:text-[var(--primary-500)]">Terms</a></>
-                    }
-                </p>
+                {/* Footer Link */}
+                <div className="mt-8 text-center">
+                    <p className="text-xs font-medium text-[var(--foreground-muted)]">
+                        {step === "otp" ? (
+                            <>Experiencing issues? <Link href="/login" className="text-[var(--primary)] font-bold decoration-[var(--secondary)] decoration-2 underline underline-offset-4">Sign in differently</Link></>
+                        ) : (
+                            <>Securing your data with <span className="text-[var(--primary)] font-bold">Bank-Grade Encryption</span></>
+                        )}
+                    </p>
+                </div>
             </div>
         </div>
     );

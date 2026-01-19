@@ -138,7 +138,7 @@ export default function OTPInput({
     };
 
     return (
-        <div className="flex justify-center gap-2 sm:gap-3 stagger-children">
+        <div className="flex justify-center gap-1.5 sm:gap-3 stagger-children">
             {Array.from({ length }).map((_, index) => (
                 <input
                     key={index}
@@ -155,7 +155,7 @@ export default function OTPInput({
                     onPaste={handlePaste}
                     onFocus={(e) => e.target.select()}
                     disabled={disabled}
-                    className={`otp-input animate-slide-up ${localValues[index] ? "filled" : ""
+                    className={`otp-input !text-center !p-0 ${localValues[index] ? "filled" : ""
                         } ${error ? "error animate-shake" : ""} ${disabled ? "opacity-50 cursor-not-allowed" : ""
                         }`}
                     aria-label={`Digit ${index + 1}`}

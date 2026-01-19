@@ -35,7 +35,7 @@ export default function PasswordInput({
                     disabled={disabled}
                     placeholder={placeholder}
                     autoComplete={autoComplete}
-                    className={`w-full glass-input px-4 py-3 pr-12 text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] ${error ? "error" : ""
+                    className={`w-full glass-input !py-3.5 px-5 pr-12 text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] font-medium ${error ? "error" : ""
                         } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                     aria-label={label || "Password"}
                 />

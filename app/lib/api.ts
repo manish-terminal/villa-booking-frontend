@@ -9,8 +9,8 @@ import {
     ValidateInviteCodeResponse,
     APIError,
 } from "@/app/types/auth";
-import { OwnerAnalytics } from "@/app/types/analytics";
-import { Property, CreatePropertyRequest, PropertiesListResponse, InviteCode, PropertyCalendarResponse, AvailabilityResponse, CreateBookingRequest, Booking, BookingsListResponse } from "@/app/types/property";
+import { OwnerAnalytics, AgentAnalytics, DashboardStats } from "@/app/types/analytics";
+import { Property, CreatePropertyRequest, PropertiesListResponse, InviteCode, PropertyCalendarResponse, AvailabilityResponse, CreateBookingRequest, Booking, BookingsListResponse, Payment, OfflinePaymentRequest, PaymentSummary, PaymentListResponse } from "@/app/types/property";
 
 const API_BASE_URL =
     "https://vwn08g3i79.execute-api.ap-south-1.amazonaws.com/prod";
@@ -46,6 +46,13 @@ class ApiClient {
         });
 
         const data = await response.json();
+
+        // Log API Interaction
+        console.group(`API ${options.method || "GET"} ${endpoint}`);
+        console.log("URL:", url);
+        if (options.body) console.log("Payload:", JSON.parse(options.body as string));
+        console.log("Response:", data);
+        console.groupEnd();
 
         if (!response.ok) {
             const error: APIError = {
@@ -124,20 +131,7 @@ class ApiClient {
         });
     }
 
-    // Get owner analytics
-    async getOwnerAnalytics(
-        startDate?: string,
-        endDate?: string
-    ): Promise<OwnerAnalytics> {
-        const params = new URLSearchParams();
-        if (startDate) params.append("startDate", startDate);
-        if (endDate) params.append("endDate", endDate);
-
-        const query = params.toString() ? `?${params.toString()}` : "";
-        return this.request<OwnerAnalytics>(`/analytics/owner${query}`, {
-            method: "GET",
-        });
-    }
+    // --- Property Management ---
 
     // Get my properties
     async getProperties(): Promise<PropertiesListResponse> {
@@ -195,6 +189,8 @@ class ApiClient {
         });
     }
 
+    // --- Booking Management ---
+
     // Get property calendar
     async getPropertyCalendar(propertyId: string, startDate?: string, endDate?: string): Promise<PropertyCalendarResponse> {
         const params = new URLSearchParams();
@@ -232,11 +228,81 @@ class ApiClient {
         });
     }
 
+    // Get booking by ID
+    async getBooking(id: string): Promise<Booking> {
+        return this.request<Booking>(`/bookings/${id}`, {
+            method: "GET",
+        });
+    }
+
     // Update booking status
     async updateBookingStatus(id: string, status: string): Promise<{ message: string; bookingId: string; status: string }> {
         return this.request<{ message: string; bookingId: string; status: string }>(`/bookings/${id}/status`, {
             method: "PATCH",
             body: JSON.stringify({ status }),
+        });
+    }
+
+    // --- Payment Management ---
+
+    // Log offline payment
+    async logPayment(bookingId: string, data: OfflinePaymentRequest): Promise<{ payment: Payment; summary: PaymentSummary; message: string }> {
+        return this.request<{ payment: Payment; summary: PaymentSummary; message: string }>(`/bookings/${bookingId}/payments`, {
+            method: "POST",
+            body: JSON.stringify(data),
+        });
+    }
+
+    // Get all payments for a booking
+    async getBookingPayments(bookingId: string): Promise<PaymentListResponse> {
+        return this.request<PaymentListResponse>(`/bookings/${bookingId}/payments`, {
+            method: "GET",
+        });
+    }
+
+    // Get payment status summary
+    async getBookingPaymentStatus(bookingId: string): Promise<PaymentSummary> {
+        return this.request<PaymentSummary>(`/bookings/${bookingId}/payment-status`, {
+            method: "GET",
+        });
+    }
+
+    // --- Analytics ---
+
+    // Get owner analytics
+    async getOwnerAnalytics(
+        startDate?: string,
+        endDate?: string
+    ): Promise<OwnerAnalytics> {
+        const params = new URLSearchParams();
+        if (startDate) params.append("startDate", startDate);
+        if (endDate) params.append("endDate", endDate);
+
+        const query = params.toString() ? `?${params.toString()}` : "";
+        return this.request<OwnerAnalytics>(`/analytics/owner${query}`, {
+            method: "GET",
+        });
+    }
+
+    // Get agent analytics
+    async getAgentAnalytics(
+        startDate?: string,
+        endDate?: string
+    ): Promise<AgentAnalytics> {
+        const params = new URLSearchParams();
+        if (startDate) params.append("startDate", startDate);
+        if (endDate) params.append("endDate", endDate);
+
+        const query = params.toString() ? `?${params.toString()}` : "";
+        return this.request<AgentAnalytics>(`/analytics/agent${query}`, {
+            method: "GET",
+        });
+    }
+
+    // Get dashboard stats
+    async getDashboardStats(): Promise<DashboardStats> {
+        return this.request<DashboardStats>("/analytics/dashboard", {
+            method: "GET",
         });
     }
 }

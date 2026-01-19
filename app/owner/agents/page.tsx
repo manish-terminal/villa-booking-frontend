@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { X, User, Phone, Mail, Users, FileText, Send, Calendar as CalendarIcon, CreditCard, Plus, ChevronDown, Copy } from "lucide-react";
 import { api } from "@/app/lib/api";
 import { Property, InviteCode } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
@@ -64,94 +66,89 @@ function GenerateCodeModal({
     if (!isOpen || !property) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-
-            <div className="relative glass-card w-full max-w-md p-6 animate-slide-up">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-[var(--foreground)]">Generate Invite Code</h2>
-                    <button onClick={onClose} className="p-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+            <div className="glass-card w-full max-w-md overflow-hidden flex flex-col shadow-2xl animate-scale-in border-t-8 border-[var(--primary)]">
+                <div className="p-8 border-b border-[var(--glass-border)] flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">Generate Code</h2>
+                        <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">Agent entry for {property.name}</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 rounded-xl bg-[var(--input-bg)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-all">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                {/* Property Info */}
-                <div className="p-4 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] mb-6">
-                    <p className="text-sm text-[var(--foreground-muted)]">Property</p>
-                    <p className="font-medium text-[var(--foreground)]">{property.name}</p>
-                    <p className="text-sm text-[var(--foreground-muted)]">{property.city}, {property.state}</p>
-                </div>
+                <div className="p-8">
+                    {!generatedCode ? (
+                        <div className="space-y-8">
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest ml-1 mb-2 block">Expiration</label>
+                                    <select
+                                        value={expiresInDays}
+                                        onChange={(e) => setExpiresInDays(parseInt(e.target.value))}
+                                        className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm font-bold text-[var(--foreground)] outline-none appearance-none transition-all cursor-pointer"
+                                    >
+                                        <option value={7}>7 Days Validity</option>
+                                        <option value={14}>14 Days Validity</option>
+                                        <option value={30}>30 Days Validity</option>
+                                        <option value={60}>60 Days Validity</option>
+                                        <option value={90}>90 Days Validity</option>
+                                    </select>
+                                </div>
 
-                {!generatedCode ? (
-                    <>
-                        {/* Options */}
-                        <div className="space-y-4 mb-6">
-                            <div>
-                                <label className="form-label">Expires In</label>
-                                <select
-                                    value={expiresInDays}
-                                    onChange={(e) => setExpiresInDays(parseInt(e.target.value))}
-                                    className="w-full glass-input px-4 py-3 text-[var(--foreground)]"
-                                >
-                                    <option value={7}>7 days</option>
-                                    <option value={14}>14 days</option>
-                                    <option value={30}>30 days</option>
-                                    <option value={60}>60 days</option>
-                                    <option value={90}>90 days</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="form-label">Maximum Uses</label>
-                                <select
-                                    value={maxUses}
-                                    onChange={(e) => setMaxUses(parseInt(e.target.value))}
-                                    className="w-full glass-input px-4 py-3 text-[var(--foreground)]"
-                                >
-                                    <option value={1}>1 use</option>
-                                    <option value={5}>5 uses</option>
-                                    <option value={10}>10 uses</option>
-                                    <option value={25}>25 uses</option>
-                                    <option value={50}>50 uses</option>
-                                    <option value={100}>100 uses (unlimited)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <Button onClick={handleGenerate} loading={loading}>
-                            Generate Code
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        {/* Generated Code Display */}
-                        <div className="text-center mb-6">
-                            <p className="text-sm text-[var(--foreground-muted)] mb-2">Share this code with agents</p>
-                            <div className="relative">
-                                <div className="text-3xl font-mono font-bold text-[var(--foreground)] tracking-widest bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent py-4">
-                                    {generatedCode.code.toUpperCase()}
+                                <div>
+                                    <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest ml-1 mb-2 block">Usage Limit</label>
+                                    <select
+                                        value={maxUses}
+                                        onChange={(e) => setMaxUses(parseInt(e.target.value))}
+                                        className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm font-bold text-[var(--foreground)] outline-none appearance-none transition-all cursor-pointer"
+                                    >
+                                        <option value={1}>Single Use Code</option>
+                                        <option value={5}>5 Shared Uses</option>
+                                        <option value={10}>10 Shared Uses</option>
+                                        <option value={25}>25 Shared Uses</option>
+                                        <option value={50}>50 Shared Uses</option>
+                                        <option value={100}>Unlimited (100 uses)</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-center gap-4 mt-4 text-sm text-[var(--foreground-muted)]">
-                                <span>Expires: {new Date(generatedCode.expiresAt).toLocaleDateString()}</span>
-                                <span>•</span>
-                                <span>Max uses: {generatedCode.maxUses}</span>
+
+                            <Button onClick={handleGenerate} loading={loading} fullWidth className="h-14 !rounded-2xl">
+                                <span className="text-sm font-black uppercase tracking-widest">Generate Access Code</span>
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-8">
+                            <div className="text-center p-8 rounded-3xl bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary)]/20">
+                                <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] mb-4">Sharing Access Code</p>
+                                <div className="text-4xl font-mono font-black tracking-[0.3em] mb-4 select-all">
+                                    {generatedCode.code.toUpperCase()}
+                                </div>
+                                <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-white/60 uppercase tracking-widest">
+                                    <span>Expires {format(new Date(generatedCode.expiresAt), "MMM d, yyyy")}</span>
+                                    <span className="opacity-30">•</span>
+                                    <span>Limit {generatedCode.maxUses} Uses</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={copyToClipboard}
+                                    className="flex-1 h-14 rounded-2xl bg-[var(--input-bg)] text-[var(--foreground)] text-xs font-black uppercase tracking-widest hover:bg-[var(--glass-border)] transition-all flex items-center justify-center gap-3 border border-[var(--glass-border)]"
+                                >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    Copy Link
+                                </button>
+                                <Button onClick={onClose} fullWidth className="h-14 !rounded-2xl">Done</Button>
                             </div>
                         </div>
-
-                        <div className="flex gap-3">
-                            <button onClick={copyToClipboard} className="flex-1 btn-secondary flex items-center justify-center gap-2">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                                Copy
-                            </button>
-                            <Button onClick={onClose} fullWidth>Done</Button>
-                        </div>
-                    </>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -179,10 +176,7 @@ function PropertyCodeCard({
         setLoadingCodes(true);
         try {
             const response = await api.getPropertyInviteCodes(property.id);
-            console.log("API response for invite codes:", response);
-            // API returns inviteCodes, not codes
             const codesArray = (response as { inviteCodes?: InviteCode[] }).inviteCodes || [];
-            console.log("Codes array:", codesArray);
             setCodes(codesArray);
             setExpanded(true);
         } catch (err) {
@@ -196,92 +190,92 @@ function PropertyCodeCard({
     const copyCode = async (code: string) => {
         try {
             await navigator.clipboard.writeText(code);
-            showToast("Code copied!", "success");
+            showToast("Code copied to clipboard!", "success");
         } catch {
             showToast("Failed to copy", "error");
         }
     };
 
-    // Show all codes - filter later if needed based on actual API fields
-    const displayCodes = codes;
-
     return (
-        <div className="glass-card p-5 animate-fade-in">
-            {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[var(--primary-500)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
+        <div className="glass-card overflow-hidden animate-fade-in border-l-4 border-[var(--primary)]">
+            <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] group-hover:scale-110 transition-transform">
+                            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-[var(--foreground)] tracking-tight">{property.name}</h3>
+                            <p className="text-[10px] font-black text-[var(--foreground-muted)] uppercase tracking-widest">{property.city}, {property.state}</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-[var(--foreground)]">{property.name}</h3>
-                        <p className="text-sm text-[var(--foreground-muted)]">{property.city}, {property.state}</p>
-                    </div>
+                    <Button onClick={() => onGenerateCode(property)} className="!rounded-xl px-4 py-2">
+                        <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                            <Plus size={14} />
+                            Code
+                        </span>
+                    </Button>
                 </div>
-                <Button onClick={() => onGenerateCode(property)} fullWidth={false}>
-                    <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    New Code
-                </Button>
-            </div>
 
-            {/* View Codes Button */}
-            <button
-                onClick={fetchCodes}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--glass-bg)] transition-colors"
-            >
-                <span className="text-sm text-[var(--foreground-muted)]">
-                    {loadingCodes ? "Loading..." : expanded ? "Hide codes" : "View existing codes"}
-                </span>
-                <svg
-                    className={`w-5 h-5 text-[var(--foreground-muted)] transition-transform ${expanded ? "rotate-180" : ""}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                {/* View Codes Toggle */}
+                <button
+                    onClick={fetchCodes}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl bg-[var(--input-bg)] hover:bg-[var(--glass-border)]/50 transition-all border border-transparent hover:border-[var(--glass-border)]"
                 >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
+                    <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${codes.length > 0 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-[var(--foreground-muted)] opacity-30'}`} />
+                        <span className="text-[10px] font-black text-[var(--foreground-muted)] uppercase tracking-widest">
+                            {loadingCodes ? "Syncing..." : expanded ? "Hide Active Codes" : `View ${codes.length || ''} Existing Codes`}
+                        </span>
+                    </div>
+                    <ChevronDown size={16} className={`text-[var(--foreground-muted)] transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} />
+                </button>
 
-            {/* Codes List */}
-            {expanded && codes.length > 0 && (
-                <div className="mt-4 space-y-2 animate-slide-up">
-                    {displayCodes.length === 0 ? (
-                        <p className="text-sm text-[var(--foreground-muted)] text-center py-4">No active codes</p>
-                    ) : (
-                        displayCodes.map((code: InviteCode) => (
-                            <div
-                                key={code.code}
-                                className="flex items-center justify-between p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)]"
-                            >
-                                <div>
-                                    <p className="font-mono font-bold text-[var(--foreground)]">{code.code.toUpperCase()}</p>
-                                    <p className="text-xs text-[var(--foreground-muted)]">
-                                        Used: {code.usedCount || 0}/{code.maxUses || '∞'} • Expires: {code.expiresAt ? new Date(code.expiresAt).toLocaleDateString() : 'Never'}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => copyCode(code.code)}
-                                    className="p-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-                                >
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                    </svg>
-                                </button>
+                {/* Codes List */}
+                {expanded && (
+                    <div className="mt-4 space-y-3 animate-slide-up">
+                        {codes.length === 0 && !loadingCodes ? (
+                            <div className="py-8 text-center bg-[var(--input-bg)]/30 rounded-2xl border border-dashed border-[var(--glass-border)]">
+                                <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest">No keys generated yet</p>
                             </div>
-                        ))
-                    )}
-                </div>
-            )}
-
-            {expanded && codes.length === 0 && !loadingCodes && (
-                <p className="mt-4 text-sm text-[var(--foreground-muted)] text-center py-4">
-                    No codes generated yet
-                </p>
-            )}
+                        ) : (
+                            codes.map((code) => (
+                                <div
+                                    key={code.code}
+                                    className="group flex items-center justify-between p-4 rounded-xl bg-[var(--input-bg)] border border-[var(--glass-border)] hover:border-[var(--secondary)] transition-all"
+                                >
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-mono font-black text-[var(--foreground)] tracking-widest">{code.code.toUpperCase()}</p>
+                                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${code.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                                {code.isActive ? 'Active' : 'Expired'}
+                                            </span>
+                                        </div>
+                                        <p className="text-[9px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest flex items-center gap-3">
+                                            <span>Used: {code.usedCount || 0}/{code.maxUses || '∞'}</span>
+                                            <span className="opacity-30">•</span>
+                                            <span className="flex items-center gap-1.5">
+                                                <CalendarIcon size={10} />
+                                                {code.expiresAt ? format(new Date(code.expiresAt), "MMM d, yyyy") : 'No Expiry'}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => copyCode(code.code)}
+                                        className="p-2.5 rounded-xl text-[var(--foreground-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all"
+                                        title="Copy Access Code"
+                                    >
+                                        <Copy size={18} />
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -289,17 +283,17 @@ function PropertyCodeCard({
 // Loading Skeleton
 function LoadingSkeleton() {
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {[1, 2, 3].map((i) => (
-                <div key={i} className="glass-card p-5 animate-pulse">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-xl bg-[var(--input-bg)]"></div>
-                        <div>
-                            <div className="h-5 w-40 bg-[var(--input-bg)] rounded mb-2"></div>
-                            <div className="h-4 w-24 bg-[var(--input-bg)] rounded"></div>
+                <div key={i} className="glass-card p-6 animate-pulse border-l-4 border-[var(--glass-border)]">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-14 h-14 rounded-2xl bg-[var(--input-bg)]"></div>
+                        <div className="space-y-2">
+                            <div className="h-5 w-40 bg-[var(--input-bg)] rounded-lg"></div>
+                            <div className="h-3 w-24 bg-[var(--input-bg)] rounded-md"></div>
                         </div>
                     </div>
-                    <div className="h-12 bg-[var(--input-bg)] rounded-xl"></div>
+                    <div className="h-14 bg-[var(--input-bg)] rounded-2xl"></div>
                 </div>
             ))}
         </div>
@@ -309,18 +303,22 @@ function LoadingSkeleton() {
 // Empty State
 function EmptyState() {
     return (
-        <div className="glass-card p-12 text-center animate-fade-in">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
-                <svg className="w-10 h-10 text-[var(--foreground-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="glass-card p-16 text-center animate-fade-in border-dashed border-2 border-[var(--glass-border)] bg-transparent">
+            <div className="w-24 h-24 mx-auto mb-8 rounded-[2.5rem] bg-[var(--primary)] text-white flex items-center justify-center shadow-2xl shadow-[var(--primary)]/20 rotate-3">
+                <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                 </svg>
             </div>
-            <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">No Properties Yet</h3>
-            <p className="text-[var(--foreground-muted)] mb-6">
-                Add properties first to generate agent invite codes
+            <h3 className="text-2xl font-bold text-[var(--foreground)] mb-3 tracking-tight">No Properties Registered</h3>
+            <p className="text-[11px] font-black text-[var(--foreground-muted)] uppercase tracking-widest max-w-xs mx-auto mb-8 opacity-60">
+                You need to register at least one property before you can manage agent access codes.
             </p>
-            <a href="/owner/properties" className="btn-primary inline-block px-6 py-3">
-                Add Property
+            <a
+                href="/owner/properties"
+                className="inline-flex items-center gap-3 bg-[var(--foreground)] text-[var(--background)] px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/10"
+            >
+                Register Property
+                <Plus size={16} />
             </a>
         </div>
     );
@@ -364,25 +362,28 @@ export default function AgentCodesPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-10 max-w-5xl mx-auto pb-20">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-[var(--foreground)]">Agent Codes</h1>
-                <p className="text-[var(--foreground-muted)]">
-                    Generate invite codes for agents to book your properties
+                <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Agent Access Codes</h1>
+                <p className="text-[11px] font-black text-[var(--foreground-muted)] uppercase tracking-widest mt-2">
+                    Manage property-specific invitation keys for authorized agents
                 </p>
             </div>
 
-            {/* Info Card */}
-            <div className="glass-card p-4 border-l-4 border-[var(--primary-500)]">
-                <div className="flex gap-3">
-                    <svg className="w-5 h-5 text-[var(--primary-500)] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="text-sm">
-                        <p className="text-[var(--foreground)] font-medium">How it works</p>
-                        <p className="text-[var(--foreground-muted)]">
-                            Generate codes and share them with agents. When agents register with your code, they&apos;ll be linked to your property and can make bookings on your behalf.
+            {/* How it works Info Card */}
+            <div className="p-6 rounded-3xl bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary)]/20">
+                <div className="flex gap-5">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">System Guide</p>
+                        <p className="text-sm font-bold leading-relaxed">
+                            Generate unique keys and share them with your agents. When an agent registers with your code,
+                            they gain authorization to manage bookings for that specific property under your oversight.
                         </p>
                     </div>
                 </div>
@@ -390,30 +391,37 @@ export default function AgentCodesPage() {
 
             {/* Error State */}
             {error && (
-                <div className="glass-card p-4 border-[var(--error)] bg-red-500/10">
-                    <p className="text-[var(--error)]">{error}</p>
-                    <button onClick={fetchProperties} className="link text-sm mt-2">Try again</button>
+                <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 animate-fade-in">
+                    <div className="flex items-center gap-3 text-red-500 text-[10px] font-black uppercase tracking-widest">
+                        <span>Failed to sync properties</span>
+                        <button onClick={fetchProperties} className="px-3 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-all">Retry Now</button>
+                    </div>
                 </div>
             )}
-
-            {/* Loading */}
-            {loading && <LoadingSkeleton />}
-
-            {/* Empty State */}
-            {!loading && !error && properties.length === 0 && <EmptyState />}
 
             {/* Properties List */}
-            {!loading && !error && properties.length > 0 && (
-                <div className="space-y-4">
-                    {properties.map((property) => (
-                        <PropertyCodeCard
-                            key={property.id}
-                            property={property}
-                            onGenerateCode={handleGenerateCode}
-                        />
-                    ))}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                    <h2 className="text-[10px] font-black text-[var(--foreground-muted)] uppercase tracking-[0.2em]">Active Properties</h2>
+                    <span className="text-[10px] font-black text-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 rounded-full">{properties.length} Total</span>
                 </div>
-            )}
+
+                {loading ? (
+                    <LoadingSkeleton />
+                ) : !error && properties.length === 0 ? (
+                    <EmptyState />
+                ) : (
+                    <div className="grid grid-cols-1 gap-6">
+                        {properties.map((property) => (
+                            <PropertyCodeCard
+                                key={property.id}
+                                property={property}
+                                onGenerateCode={handleGenerateCode}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Generate Modal */}
             <GenerateCodeModal

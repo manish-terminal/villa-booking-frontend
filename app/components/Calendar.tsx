@@ -25,6 +25,7 @@ import { OccupiedRange } from "@/app/types/property";
 interface CalendarProps {
     occupiedRanges: OccupiedRange[];
     onRangeSelect: (start: Date | null, end: Date | null) => void;
+    onBookingClick?: (bookingId: string) => void;
     selectedStart: Date | null;
     selectedEnd: Date | null;
     pricePerNight: number;
@@ -35,6 +36,7 @@ interface CalendarProps {
 export default function Calendar({
     occupiedRanges,
     onRangeSelect,
+    onBookingClick,
     selectedStart,
     selectedEnd,
     pricePerNight,
@@ -60,7 +62,12 @@ export default function Calendar({
 
         // Check if day is occupied
         const occupied = getOccupiedStatus(day);
-        if (occupied) return; // Strictly prevent selecting an occupied day
+        if (occupied) {
+            if (isOwner && occupied.bookingId && onBookingClick) {
+                onBookingClick(occupied.bookingId);
+            }
+            return;
+        }
 
         if (!selectedStart || (selectedStart && selectedEnd)) {
             onRangeSelect(day, null);

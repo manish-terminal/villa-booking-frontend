@@ -31,6 +31,40 @@ export interface OwnerAnalytics {
     periodEnd: string;
 }
 
+export interface AgentAnalytics {
+    totalBookings: number;
+    totalBookingValue: number;
+    totalCollected: number;
+    totalCommission: number;
+    currency: string;
+    bookingsByStatus: {
+        confirmed: number;
+        pending_confirmation: number;
+    };
+    recentBookings: {
+        bookingId: string;
+        propertyName: string;
+        guestName: string;
+        checkIn: string;
+        checkOut: string;
+        totalAmount: number;
+        agentCommission: number;
+        status: string;
+        paymentStatus: string;
+    }[];
+    periodStart: string;
+    periodEnd: string;
+}
+
+export interface DashboardStats {
+    todayCheckIns: number;
+    todayCheckOuts: number;
+    pendingApprovals: number;
+    pendingPayments: number;
+    totalDueAmount: number;
+    currency: string;
+}
+
 export interface AnalyticsFilters {
     startDate?: string;
     endDate?: string;

@@ -20,10 +20,6 @@ interface CountryCode {
 
 const countryCodes: CountryCode[] = [
     { code: "+91", name: "India", flag: "🇮🇳", maxLength: 10 },
-    { code: "+1", name: "USA", flag: "🇺🇸", maxLength: 10 },
-    { code: "+44", name: "UK", flag: "🇬🇧", maxLength: 10 },
-    { code: "+971", name: "UAE", flag: "🇦🇪", maxLength: 9 },
-    { code: "+65", name: "Singapore", flag: "🇸🇬", maxLength: 8 },
 ];
 
 export default function PhoneInput({
@@ -34,27 +30,8 @@ export default function PhoneInput({
     autoFocus = false,
     placeholder = "Enter phone number",
 }: PhoneInputProps) {
-    const [selectedCountry, setSelectedCountry] = useState<CountryCode>(
-        countryCodes[0]
-    );
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const selectedCountry = countryCodes[0];
     const inputRef = useRef<HTMLInputElement>(null);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node)
-            ) {
-                setIsDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
 
     // Auto-focus
     useEffect(() => {
@@ -72,52 +49,30 @@ export default function PhoneInput({
 
     const formatPhoneDisplay = (phone: string) => {
         // Format for display (e.g., 98765 43210)
-        if (selectedCountry.code === "+91" && phone.length > 5) {
+        if (phone.length > 5) {
             return `${phone.slice(0, 5)} ${phone.slice(5)}`;
         }
         return phone;
     };
 
-    const selectCountry = (country: CountryCode) => {
-        setSelectedCountry(country);
-        setIsDropdownOpen(false);
-        onChange(""); // Clear phone when country changes
-        inputRef.current?.focus();
-    };
-
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative">
             <div
-                className={`flex items-stretch glass-input overflow-hidden ${error ? "error" : ""
+                className={`flex items-stretch glass-input !p-0 overflow-hidden ${error ? "error" : ""
                     } ${disabled ? "opacity-50" : ""}`}
             >
-                {/* Country Code Selector */}
-                <button
-                    type="button"
-                    onClick={() => !disabled && setIsDropdownOpen(!isDropdownOpen)}
-                    disabled={disabled}
-                    className="flex items-center gap-1.5 px-3 py-3 border-r border-[var(--input-border)] hover:bg-[var(--glass-bg)] transition-colors"
-                    aria-label="Select country code"
-                >
-                    <span className="text-xl">{selectedCountry.flag}</span>
-                    <span className="text-sm font-medium text-[var(--foreground)]">
-                        {selectedCountry.code}
-                    </span>
-                    <svg
-                        className={`w-4 h-4 text-[var(--foreground-muted)] transition-transform ${isDropdownOpen ? "rotate-180" : ""
-                            }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                        />
-                    </svg>
-                </button>
+                {/* Fixed Country Code - Mobile Optimized */}
+                <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3.5 border-r border-[var(--border)] bg-[var(--secondary-muted)]/10 shrink-0">
+                    <span className="text-xl sm:text-2xl shrink-0 leading-none">🇮🇳</span>
+                    <div className="flex flex-col items-start leading-none gap-0.5">
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter text-[var(--foreground-muted)] opacity-60">
+                            IND
+                        </span>
+                        <span className="text-sm sm:text-base font-bold text-[var(--primary)] whitespace-nowrap">
+                            +91
+                        </span>
+                    </div>
+                </div>
 
                 {/* Phone Input */}
                 <input
@@ -128,7 +83,7 @@ export default function PhoneInput({
                     onChange={handlePhoneChange}
                     disabled={disabled}
                     placeholder={placeholder}
-                    className="flex-1 px-4 py-3 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none text-lg"
+                    className="flex-1 min-w-0 px-3 sm:px-5 py-3.5 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none text-base sm:text-lg font-medium"
                     aria-label="Phone number"
                 />
             </div>
@@ -149,31 +104,6 @@ export default function PhoneInput({
                     </svg>
                     {error}
                 </p>
-            )}
-
-            {/* Country Dropdown */}
-            {isDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 glass-card p-2 z-50 animate-slide-up">
-                    {countryCodes.map((country) => (
-                        <button
-                            key={country.code}
-                            type="button"
-                            onClick={() => selectCountry(country)}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--input-bg)] transition-colors ${selectedCountry.code === country.code
-                                    ? "bg-[var(--input-bg)]"
-                                    : ""
-                                }`}
-                        >
-                            <span className="text-xl">{country.flag}</span>
-                            <span className="flex-1 text-left text-[var(--foreground)]">
-                                {country.name}
-                            </span>
-                            <span className="text-[var(--foreground-muted)] text-sm">
-                                {country.code}
-                            </span>
-                        </button>
-                    ))}
-                </div>
             )}
         </div>
     );

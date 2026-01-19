@@ -5,6 +5,7 @@ export interface User {
   name: string;
   role: "admin" | "owner" | "agent";
   status: "pending" | "approved" | "rejected";
+  managedProperties?: string[]; // IDs of properties linked to agent
   createdAt: string;
   updatedAt: string;
 }
@@ -64,6 +65,7 @@ export interface ValidateInviteCodeRequest {
 
 export interface ValidateInviteCodeResponse {
   valid: boolean;
+  inviteCode?: any; // Property details/invite code
   message?: string;
 }
 

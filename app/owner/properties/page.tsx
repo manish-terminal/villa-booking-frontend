@@ -30,91 +30,77 @@ function PropertyCard({
     onEdit: (property: Property) => void;
 }) {
     return (
-        <div className="glass-card p-5 hover:shadow-xl transition-shadow animate-fade-in">
-            {/* Image Placeholder */}
-            <div className="relative h-40 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 mb-4 overflow-hidden">
+        <div className="glass-card overflow-hidden group hover:shadow-2xl transition-all duration-300">
+            {/* Image Section */}
+            <div className="relative h-48 sm:h-56 bg-[var(--input-bg)] overflow-hidden">
                 {property.images && property.images.length > 0 ? (
                     <img
                         src={property.images[0]}
                         alt={property.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                 ) : (
-                    <div className="flex items-center justify-center h-full">
-                        <svg className="w-12 h-12 text-[var(--foreground-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    <div className="flex flex-col items-center justify-center h-full text-[var(--foreground-muted)] opacity-50">
+                        <svg className="w-12 h-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h14a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
+                        <span className="text-xs font-bold uppercase tracking-widest">No Image</span>
                     </div>
                 )}
                 {/* Status Badge */}
-                <span className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium ${property.isActive
-                        ? "bg-green-500/90 text-white"
-                        : "bg-gray-500/90 text-white"
-                    }`}>
-                    {property.isActive ? "Active" : "Inactive"}
-                </span>
+                <div className="absolute top-4 left-4">
+                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg ${property.isActive
+                        ? "bg-emerald-500 text-white"
+                        : "bg-gray-500/80 text-white"
+                        }`}>
+                        {property.isActive ? "Active" : "Inactive"}
+                    </span>
+                </div>
+                {/* Price Overlay */}
+                <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-lg">
+                    <p className="text-sm font-black text-[var(--primary)]">
+                        ₹{property.pricePerNight.toLocaleString()}
+                        <span className="text-[10px] font-normal text-[var(--foreground-muted)] ml-0.5">/night</span>
+                    </p>
+                </div>
             </div>
 
             {/* Content */}
-            <h3 className="font-semibold text-lg text-[var(--foreground)] mb-1 truncate">
-                {property.name}
-            </h3>
-            <p className="text-sm text-[var(--foreground-muted)] mb-3 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {property.city}, {property.state}
-            </p>
+            <div className="p-5 space-y-4">
+                <div>
+                    <h3 className="font-bold text-lg text-[var(--foreground)] leading-tight truncate">
+                        {property.name}
+                    </h3>
+                    <p className="text-xs font-medium text-[var(--foreground-muted)] flex items-center gap-1 mt-1">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        </svg>
+                        {property.city}, {property.state}
+                    </p>
+                </div>
 
-            {/* Price */}
-            <div className="flex items-center justify-between mb-4">
-                <span className="text-xl font-bold text-[var(--foreground)]">
-                    ₹{property.pricePerNight.toLocaleString()}
-                    <span className="text-sm font-normal text-[var(--foreground-muted)]">/night</span>
-                </span>
-            </div>
+                {/* Details Grid */}
+                <div className="grid grid-cols-3 gap-2 py-3 border-y border-[var(--glass-border)]">
+                    <div className="text-center">
+                        <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase mb-0.5">Guests</p>
+                        <p className="text-sm font-black text-[var(--foreground)]">{property.maxGuests}</p>
+                    </div>
+                    <div className="text-center border-x border-[var(--glass-border)]">
+                        <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase mb-0.5">Beds</p>
+                        <p className="text-sm font-black text-[var(--foreground)]">{property.bedrooms}</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase mb-0.5">Baths</p>
+                        <p className="text-sm font-black text-[var(--foreground)]">{property.bathrooms}</p>
+                    </div>
+                </div>
 
-            {/* Details */}
-            <div className="flex items-center gap-4 text-sm text-[var(--foreground-muted)] mb-4">
-                <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {property.maxGuests} guests
-                </span>
-                <span className="flex items-center gap-1">
-                    🛏️ {property.bedrooms} beds
-                </span>
-                <span className="flex items-center gap-1">
-                    🚿 {property.bathrooms} baths
-                </span>
-            </div>
-
-            {/* Amenities */}
-            <div className="flex flex-wrap gap-1.5 mb-4">
-                {property.amenities.slice(0, 4).map((amenity) => (
-                    <span
-                        key={amenity}
-                        className="px-2 py-1 bg-[var(--input-bg)] rounded-md text-xs text-[var(--foreground-muted)]"
-                    >
-                        {amenity}
-                    </span>
-                ))}
-                {property.amenities.length > 4 && (
-                    <span className="px-2 py-1 bg-[var(--input-bg)] rounded-md text-xs text-[var(--foreground-muted)]">
-                        +{property.amenities.length - 4} more
-                    </span>
-                )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2">
+                {/* Actions */}
                 <button
                     onClick={() => onEdit(property)}
-                    className="flex-1 btn-secondary text-sm py-2"
+                    className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest bg-[var(--input-bg)] text-[var(--foreground)] hover:bg-[var(--primary)] hover:text-white transition-all duration-300"
                 >
-                    Edit
+                    Management Details
                 </button>
             </div>
         </div>
@@ -167,7 +153,7 @@ function PropertyModal({
                 maxGuests: property.maxGuests,
                 bedrooms: property.bedrooms,
                 bathrooms: property.bathrooms,
-                amenities: property.amenities,
+                amenities: property.amenities || [],
                 images: property.images || [],
             });
         } else {
@@ -240,20 +226,23 @@ function PropertyModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                className="absolute inset-0 bg-[var(--primary)]/20 backdrop-blur-md"
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="relative glass-card w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 animate-slide-up">
+            <div className="relative glass-card w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 animate-slide-up shadow-2xl">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-[var(--foreground)]">
-                        {property ? "Edit Property" : "Add New Property"}
-                    </h2>
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 className="text-2xl font-bold text-[var(--foreground)]">
+                            {property ? "Property Settings" : "New Property"}
+                        </h2>
+                        <p className="text-xs font-bold text-[var(--foreground-muted)] uppercase tracking-widest mt-1">Configure your listing details</p>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+                        className="p-2 rounded-xl bg-[var(--input-bg)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -262,141 +251,132 @@ function PropertyModal({
                 </div>
 
                 {/* Form */}
-                <div className="space-y-4">
-                    {/* Name */}
-                    <div>
-                        <label className="form-label">Property Name *</label>
-                        <input
-                            type="text"
-                            value={formData.name}
-                            onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                            placeholder="e.g. Sunset Beach Villa"
-                            className={`w-full glass-input px-4 py-3 text-[var(--foreground)] ${errors.name ? "error" : ""}`}
-                        />
-                        {errors.name && <p className="form-error">{errors.name}</p>}
+                <div className="space-y-6">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 gap-6">
+                        <div>
+                            <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-2 block">Display Name *</label>
+                            <input
+                                type="text"
+                                value={formData.name}
+                                onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+                                placeholder="e.g. Ocean Blue Villa"
+                                className={`w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] transition-all outline-none ${errors.name ? "border-rose-500" : ""}`}
+                            />
+                            {errors.name && <p className="text-[10px] text-rose-500 font-bold uppercase mt-1.5 ml-1">{errors.name}</p>}
+                        </div>
+
+                        <div>
+                            <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-2 block">Description</label>
+                            <textarea
+                                value={formData.description}
+                                onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
+                                placeholder="Highlight the best features of your property..."
+                                rows={3}
+                                className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] transition-all outline-none resize-none"
+                            />
+                        </div>
                     </div>
 
-                    {/* Description */}
-                    <div>
-                        <label className="form-label">Description</label>
-                        <textarea
-                            value={formData.description}
-                            onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
-                            placeholder="Describe your property..."
-                            rows={3}
-                            className="w-full glass-input px-4 py-3 text-[var(--foreground)] resize-none"
-                        />
-                    </div>
-
-                    {/* Address */}
-                    <div>
-                        <label className="form-label">Address *</label>
+                    {/* Location */}
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] block">Location Details *</label>
                         <input
                             type="text"
                             value={formData.address}
                             onChange={(e) => setFormData((p) => ({ ...p, address: e.target.value }))}
-                            placeholder="Street address"
-                            className={`w-full glass-input px-4 py-3 text-[var(--foreground)] ${errors.address ? "error" : ""}`}
+                            placeholder="Full street address"
+                            className={`w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] transition-all outline-none ${errors.address ? "border-rose-500" : ""}`}
                         />
-                        {errors.address && <p className="form-error">{errors.address}</p>}
-                    </div>
-
-                    {/* City, State, Country */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label className="form-label">City *</label>
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                             <input
                                 type="text"
                                 value={formData.city}
                                 onChange={(e) => setFormData((p) => ({ ...p, city: e.target.value }))}
                                 placeholder="City"
-                                className={`w-full glass-input px-4 py-3 text-[var(--foreground)] ${errors.city ? "error" : ""}`}
+                                className={`bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] transition-all outline-none ${errors.city ? "border-rose-500" : ""}`}
                             />
-                            {errors.city && <p className="form-error">{errors.city}</p>}
-                        </div>
-                        <div>
-                            <label className="form-label">State *</label>
                             <input
                                 type="text"
                                 value={formData.state}
                                 onChange={(e) => setFormData((p) => ({ ...p, state: e.target.value }))}
                                 placeholder="State"
-                                className={`w-full glass-input px-4 py-3 text-[var(--foreground)] ${errors.state ? "error" : ""}`}
+                                className={`bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] transition-all outline-none ${errors.state ? "border-rose-500" : ""}`}
                             />
-                            {errors.state && <p className="form-error">{errors.state}</p>}
-                        </div>
-                        <div>
-                            <label className="form-label">Country</label>
-                            <input
-                                type="text"
-                                value={formData.country}
-                                onChange={(e) => setFormData((p) => ({ ...p, country: e.target.value }))}
-                                placeholder="Country"
-                                className="w-full glass-input px-4 py-3 text-[var(--foreground)]"
-                            />
+                            <div className="col-span-2 lg:col-span-1">
+                                <input
+                                    type="text"
+                                    value={formData.country}
+                                    onChange={(e) => setFormData((p) => ({ ...p, country: e.target.value }))}
+                                    placeholder="Country"
+                                    className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] transition-all outline-none"
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Price and Capacity */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {/* Numbers */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-4 border-b border-[var(--glass-border)]">
                         <div>
-                            <label className="form-label">Price/Night *</label>
-                            <input
-                                type="number"
-                                value={formData.pricePerNight || ""}
-                                onChange={(e) => setFormData((p) => ({ ...p, pricePerNight: parseInt(e.target.value) || 0 }))}
-                                placeholder="₹0"
-                                className={`w-full glass-input px-4 py-3 text-[var(--foreground)] ${errors.pricePerNight ? "error" : ""}`}
-                            />
-                            {errors.pricePerNight && <p className="form-error">{errors.pricePerNight}</p>}
+                            <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-2 block">Price/Night</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--foreground-muted)]">₹</span>
+                                <input
+                                    type="number"
+                                    value={formData.pricePerNight || ""}
+                                    onChange={(e) => setFormData((p) => ({ ...p, pricePerNight: parseInt(e.target.value) || 0 }))}
+                                    className={`w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl pl-8 pr-4 py-3.5 text-sm font-black text-[var(--foreground)] outline-none ${errors.pricePerNight ? "border-rose-500" : ""}`}
+                                />
+                            </div>
                         </div>
                         <div>
-                            <label className="form-label">Max Guests *</label>
+                            <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-2 block">Max Guests</label>
                             <input
                                 type="number"
                                 min={1}
                                 value={formData.maxGuests}
                                 onChange={(e) => setFormData((p) => ({ ...p, maxGuests: parseInt(e.target.value) || 1 }))}
-                                className={`w-full glass-input px-4 py-3 text-[var(--foreground)] ${errors.maxGuests ? "error" : ""}`}
+                                className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm font-black text-[var(--foreground)] outline-none"
                             />
                         </div>
                         <div>
-                            <label className="form-label">Bedrooms</label>
+                            <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-2 block">Bedrooms</label>
                             <input
                                 type="number"
                                 min={0}
                                 value={formData.bedrooms}
                                 onChange={(e) => setFormData((p) => ({ ...p, bedrooms: parseInt(e.target.value) || 0 }))}
-                                className="w-full glass-input px-4 py-3 text-[var(--foreground)]"
+                                className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm font-black text-[var(--foreground)] outline-none"
                             />
                         </div>
                         <div>
-                            <label className="form-label">Bathrooms</label>
+                            <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-2 block">Bathrooms</label>
                             <input
                                 type="number"
                                 min={0}
                                 value={formData.bathrooms}
                                 onChange={(e) => setFormData((p) => ({ ...p, bathrooms: parseInt(e.target.value) || 0 }))}
-                                className="w-full glass-input px-4 py-3 text-[var(--foreground)]"
+                                className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm font-black text-[var(--foreground)] outline-none"
                             />
                         </div>
                     </div>
 
                     {/* Amenities */}
                     <div>
-                        <label className="form-label">Amenities</label>
+                        <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-3 block">Amenities & Features</label>
                         <div className="flex flex-wrap gap-2">
                             {AMENITY_OPTIONS.map((amenity) => (
                                 <button
                                     key={amenity.id}
                                     type="button"
                                     onClick={() => toggleAmenity(amenity.id)}
-                                    className={`px-3 py-2 rounded-lg text-sm transition-all ${formData.amenities.includes(amenity.id)
-                                            ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg"
-                                            : "bg-[var(--input-bg)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                                    className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${formData.amenities.includes(amenity.id)
+                                        ? "bg-[var(--secondary)] text-white shadow-lg shadow-[var(--secondary)]/20"
+                                        : "bg-[var(--input-bg)] text-[var(--foreground-muted)] hover:bg-[var(--foreground)]/10"
                                         }`}
                                 >
-                                    {amenity.icon} {amenity.label}
+                                    <span className="mr-2 text-sm">{amenity.icon}</span>
+                                    {amenity.label}
                                 </button>
                             ))}
                         </div>
@@ -404,25 +384,30 @@ function PropertyModal({
 
                     {/* Image URL */}
                     <div>
-                        <label className="form-label">Image URL (optional)</label>
+                        <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-2 block">Cover Photo URL</label>
                         <input
                             type="url"
                             value={formData.images?.[0] || ""}
                             onChange={(e) => setFormData((p) => ({ ...p, images: e.target.value ? [e.target.value] : [] }))}
-                            placeholder="https://example.com/image.jpg"
-                            className="w-full glass-input px-4 py-3 text-[var(--foreground)]"
+                            placeholder="https://images.unsplash.com/..."
+                            className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] outline-none"
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex gap-3 mt-6 pt-6 border-t border-[var(--glass-border)]">
-                    <button onClick={onClose} className="flex-1 btn-secondary">
-                        Cancel
+                <div className="flex flex-col sm:flex-row gap-3 mt-10">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-[var(--foreground-muted)] bg-[var(--input-bg)] hover:bg-[var(--foreground)]/10 transition-colors"
+                    >
+                        Discard
                     </button>
-                    <Button onClick={handleSubmit} loading={loading} fullWidth>
-                        {property ? "Save Changes" : "Create Property"}
-                    </Button>
+                    <div className="flex-[2]">
+                        <Button onClick={handleSubmit} loading={loading} fullWidth>
+                            {property ? "Update Property" : "Launch Listing"}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -434,11 +419,16 @@ function LoadingSkeleton() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-                <div key={i} className="glass-card p-5 animate-pulse">
-                    <div className="h-40 bg-[var(--input-bg)] rounded-xl mb-4"></div>
-                    <div className="h-6 bg-[var(--input-bg)] rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-[var(--input-bg)] rounded w-1/2 mb-4"></div>
-                    <div className="h-8 bg-[var(--input-bg)] rounded w-1/3"></div>
+                <div key={i} className="glass-card overflow-hidden animate-pulse">
+                    <div className="h-48 sm:h-56 bg-[var(--input-bg)]"></div>
+                    <div className="p-5 space-y-4">
+                        <div className="space-y-2">
+                            <div className="h-6 bg-[var(--input-bg)] rounded-lg w-3/4"></div>
+                            <div className="h-3 bg-[var(--input-bg)] rounded-lg w-1/2"></div>
+                        </div>
+                        <div className="h-12 bg-[var(--input-bg)] rounded-xl"></div>
+                        <div className="h-10 bg-[var(--input-bg)] rounded-xl"></div>
+                    </div>
                 </div>
             ))}
         </div>
@@ -448,16 +438,16 @@ function LoadingSkeleton() {
 // Empty State
 function EmptyState({ onAdd }: { onAdd: () => void }) {
     return (
-        <div className="glass-card p-12 text-center animate-fade-in">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
-                <svg className="w-10 h-10 text-[var(--foreground-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        <div className="glass-card p-8 sm:p-12 text-center animate-fade-in border-dashed border-2">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-[var(--primary)] text-white flex items-center justify-center shadow-xl shadow-[var(--primary)]/20">
+                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
             </div>
-            <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">No properties yet</h3>
-            <p className="text-[var(--foreground-muted)] mb-6">Add your first property to start accepting bookings</p>
-            <Button onClick={onAdd} fullWidth={false}>
-                Add Your First Property
+            <h3 className="text-xl font-bold text-[var(--foreground)] mb-2">Portfolio Empty</h3>
+            <p className="text-sm text-[var(--foreground-muted)] mb-8 max-w-xs mx-auto">Start by adding your first luxury property to the VillaBook catalog.</p>
+            <Button onClick={onAdd}>
+                Add First Property
             </Button>
         </div>
     );
@@ -502,22 +492,24 @@ export default function PropertiesPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-fade-in">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--foreground)]">My Properties</h1>
-                    <p className="text-[var(--foreground-muted)]">
-                        Manage your listed properties
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] tracking-tight">Properties</h1>
+                    <p className="text-sm text-[var(--foreground-muted)]">
+                        Manage and monitor your property portfolio
                     </p>
                 </div>
 
-                <Button onClick={handleAddNew} fullWidth={false}>
-                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Property
-                </Button>
+                <div className="sm:shrink-0">
+                    <Button onClick={handleAddNew}>
+                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Listing
+                    </Button>
+                </div>
             </div>
 
             {/* Error State */}

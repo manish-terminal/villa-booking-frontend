@@ -129,140 +129,111 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="glass-card p-6 sm:p-8">
-            {/* Logo & Header */}
-            <div className="text-center mb-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <svg
-                        className="w-8 h-8 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                        />
-                    </svg>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] mb-2">
-                    VillaBook
-                </h1>
-                <p className="text-[var(--foreground-muted)]">
-                    {mode === "otp" ? "Welcome back" : "Login to your account"}
-                </p>
-            </div>
-
-            {/* Login Form */}
-            <div className="space-y-5">
-                {/* Phone Input */}
-                <div>
-                    <label className="form-label">Phone Number</label>
-                    <PhoneInput
-                        value={phone}
-                        onChange={(value) => {
-                            setPhone(value);
-                            if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
-                        }}
-                        error={errors.phone}
-                        disabled={loading}
-                        autoFocus
-                    />
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[var(--background)]">
+            <div className="max-w-[420px] w-full animate-fade-in">
+                {/* Brand / Title */}
+                <div className="text-center mb-8 sm:mb-12">
+                    <div className="mb-8 flex flex-col items-center">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] sm:rounded-3xl bg-[var(--primary)] flex items-center justify-center mb-4 sm:mb-6 shadow-xl shadow-navy-900/20 rotate-3 transition-transform hover:rotate-0">
+                            <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xl sm:text-2xl">🇮🇳</span>
+                            <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] text-[var(--secondary)] uppercase">India's Premium Stays</span>
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl font-black text-[var(--primary)] tracking-tight">
+                            Welcome Back
+                        </h1>
+                    </div>
+                    <p className="text-sm sm:text-base text-[var(--foreground-muted)] font-medium px-4">Please enter your details to sign in.</p>
                 </div>
 
-                {/* Password Input - Only in password mode */}
-                {mode === "password" && (
-                    <div className="animate-slide-up">
-                        <PasswordInput
-                            label="Password"
-                            value={password}
-                            onChange={(value) => {
-                                setPassword(value);
-                                if (errors.password)
-                                    setErrors((prev) => ({ ...prev, password: undefined }));
-                            }}
-                            error={errors.password}
-                            disabled={loading}
-                            placeholder="Enter your password"
-                        />
-                        <div className="mt-2 text-right">
+                {/* Main Card */}
+                <div className="glass-card p-6 sm:p-10 space-y-6 sm:space-y-8 shadow-2xl">
+                    {/* Login Form */}
+                    <div className="space-y-5 sm:space-y-6">
+                        {/* Phone Input */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center px-1">
+                                <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)]">Phone Number</label>
+                            </div>
+                            <PhoneInput
+                                value={phone}
+                                onChange={(value) => {
+                                    setPhone(value);
+                                    if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+                                }}
+                                error={errors.phone}
+                                disabled={loading}
+                                autoFocus
+                            />
+                        </div>
+
+                        {/* Password Input - Only in password mode */}
+                        {mode === "password" && (
+                            <div className="space-y-2 animate-slide-up">
+                                <div className="flex justify-between items-center px-1">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)]">Password</label>
+                                    <button
+                                        type="button"
+                                        className="text-[10px] font-black uppercase tracking-widest text-[var(--secondary)] hover:opacity-70 transition-opacity"
+                                        onClick={() => showToast("Reset feature coming soon", "info")}
+                                    >
+                                        Forgot?
+                                    </button>
+                                </div>
+                                <PasswordInput
+                                    value={password}
+                                    onChange={(value) => {
+                                        setPassword(value);
+                                        if (errors.password)
+                                            setErrors((prev) => ({ ...prev, password: undefined }));
+                                    }}
+                                    error={errors.password}
+                                    disabled={loading}
+                                    placeholder="Enter your security phrase"
+                                />
+                            </div>
+                        )}
+
+                        <div className="pt-4 space-y-5">
+                            <Button
+                                onClick={mode === "otp" ? handleSendOTP : handlePasswordLogin}
+                                loading={loading}
+                                className="shadow-lg shadow-[var(--primary)]/5 uppercase text-xs tracking-[0.2em]"
+                            >
+                                {mode === "otp" ? "Send Access Code" : "Sign In"}
+                            </Button>
+
                             <button
                                 type="button"
-                                className="link-muted text-sm hover:text-[var(--primary-500)]"
-                                onClick={() => showToast("Reset password feature coming soon", "info")}
+                                onClick={() => switchMode(mode === "otp" ? "password" : "otp")}
+                                className="w-full text-center text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors py-2"
                             >
-                                Forgot Password?
+                                {mode === "otp"
+                                    ? "Login with Password instead"
+                                    : "Login with OTP instead"}
                             </button>
                         </div>
                     </div>
-                )}
+                </div>
 
-                {/* Remember Phone */}
-                <label className="flex items-center gap-3 cursor-pointer group">
-                    <div className="relative">
-                        <input
-                            type="checkbox"
-                            checked={rememberPhone}
-                            onChange={(e) => setRememberPhoneChecked(e.target.checked)}
-                            className="sr-only peer"
-                        />
-                        <div className="w-5 h-5 rounded border-2 border-[var(--input-border)] peer-checked:border-[var(--primary-500)] peer-checked:bg-[var(--primary-500)] transition-all">
-                            <svg
-                                className="w-full h-full text-white scale-0 peer-checked:scale-100 transition-transform"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={3}
-                                    d="M5 13l4 4L19 7"
-                                />
+                {/* Trust Footer */}
+                <div className="mt-12 text-center space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground-muted)] opacity-50">
+   
+                    </p>
+                    <div className="flex justify-center gap-6 saturate-0 opacity-30">
+                        <div className="flex items-center gap-1.5 grayscale">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
+                            <span className="text-[9px] font-black uppercase tracking-tighter">Verified Secure</span>
                         </div>
                     </div>
-                    <span className="text-sm text-[var(--foreground-muted)] group-hover:text-[var(--foreground)] transition-colors">
-                        Remember my phone number
-                    </span>
-                </label>
-
-                {/* Submit Button */}
-                <Button
-                    onClick={mode === "otp" ? handleSendOTP : handlePasswordLogin}
-                    loading={loading}
-                >
-                    {mode === "otp" ? "Send OTP" : "Login"}
-                </Button>
-
-                {/* Mode Toggle */}
-                <div className="text-center">
-                    <button
-                        type="button"
-                        onClick={() => switchMode(mode === "otp" ? "password" : "otp")}
-                        className="link text-sm"
-                    >
-                        {mode === "otp"
-                            ? "Already have password? Login with password"
-                            : "Login with OTP instead"}
-                    </button>
                 </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-[var(--glass-border)] text-center">
-                <p className="text-xs text-[var(--foreground-muted)]">
-                    By continuing, you agree to our{" "}
-                    <a href="#" className="link-muted hover:text-[var(--primary-500)]">
-                        Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a href="#" className="link-muted hover:text-[var(--primary-500)]">
-                        Privacy Policy
-                    </a>
-                </p>
             </div>
         </div>
     );

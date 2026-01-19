@@ -68,6 +68,7 @@ export interface CreateInviteCodeRequest {
 
 // Calendar & Booking Types
 export interface OccupiedRange {
+    bookingId?: string; // ID to link to full booking details
     checkIn: string; // ISO string
     checkOut: string; // ISO string
     status: "pending_confirmation" | "confirmed" | "checked_in" | "checked_out" | "cancelled" | "no_show";
@@ -101,6 +102,7 @@ export interface Booking {
     numNights: number;
     pricePerNight: number;
     totalAmount: number;
+    agentCommission: number;
     currency: string;
     status: string;
     bookedBy: string;
@@ -122,9 +124,48 @@ export interface CreateBookingRequest {
     inviteCode?: string;
     pricePerNight?: number;
     totalAmount?: number;
+    agentCommission?: number;
 }
 
 export interface BookingsListResponse {
     bookings: Booking[];
+    count: number;
+}
+
+// Payment Types
+export interface Payment {
+    id: string;
+    bookingId: string;
+    amount: number;
+    currency: string;
+    method: "cash" | "upi" | "bank_transfer" | "cheque" | "other";
+    reference: string;
+    recordedBy: string;
+    notes?: string;
+    paymentDate: string;
+    createdAt: string;
+}
+
+export interface OfflinePaymentRequest {
+    amount: number;
+    method: string;
+    reference: string;
+    notes?: string;
+    paymentDate: string;
+}
+
+export interface PaymentSummary {
+    bookingId: string;
+    totalAmount: number;
+    totalPaid: number;
+    totalDue: number;
+    status: "pending" | "partial" | "completed" | "due";
+    paymentCount: number;
+    currency: string;
+    lastPaymentDate?: string;
+}
+
+export interface PaymentListResponse {
+    payments: Payment[];
     count: number;
 }

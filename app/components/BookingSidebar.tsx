@@ -34,6 +34,9 @@ export default function BookingSidebar({
         specialRequests: "",
         pricePerNight: property.pricePerNight,
         totalAmount: 0,
+        agentCommission: 0,
+        advancePayment: 0,
+        paymentMethod: "upi",
     });
 
     const numNights = checkIn && checkOut ? differenceInDays(checkOut, checkIn) : 0;
@@ -77,10 +80,30 @@ export default function BookingSidebar({
                 specialRequests: formData.specialRequests,
                 pricePerNight: formData.pricePerNight,
                 totalAmount: formData.totalAmount,
+                agentCommission: formData.agentCommission,
             };
 
-            await api.createBooking(request);
+            const bookingResponse = await api.createBooking(request);
+            const newBookingId = bookingResponse.id;
+
+            // 3. Log advance payment if provided
+            if (formData.advancePayment > 0) {
+                try {
+                    await api.logPayment(newBookingId, {
+                        amount: formData.advancePayment,
+                        method: formData.paymentMethod,
+                        reference: "Advance Payment",
+                        paymentDate: format(new Date(), "yyyy-MM-dd"),
+                        notes: "Initial advance payment during booking creation",
+                    });
+                } catch (paymentErr) {
+                    console.error("Failed to log advance payment:", paymentErr);
+                    showToast("Booking created, but failed to log advance payment.", "info");
+                }
+            }
+
             showToast("Booking created successfully!", "success");
+
             onSuccess();
         } catch (err: any) {
             showToast(err.error || "Failed to create booking", "error");
@@ -92,184 +115,190 @@ export default function BookingSidebar({
     if (!checkIn) return null;
 
     return (
-        <div className="glass-card p-6 sticky top-8 animate-slide-up shadow-2xl overflow-hidden border-t-4 border-indigo-500">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h2 className="text-2xl font-bold text-[var(--foreground)]">New Booking</h2>
-                    <p className="text-sm text-[var(--foreground-muted)]">{property.name}</p>
-                </div>
-                <button
-                    onClick={onCancel}
-                    className="p-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-                >
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Date Summary */}
-                <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+        <div className="glass-card sticky top-8 animate-slide-up shadow-2xl overflow-hidden border-t-8 border-[var(--primary)]">
+            <div className="p-6 md:p-8">
+                <div className="flex items-center justify-between mb-8">
                     <div>
-                        <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Check-in</p>
-                        <p className="text-sm font-semibold text-[var(--foreground)]">{format(checkIn, "EEE, MMM d")}</p>
+                        <h2 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">New Booking</h2>
+                        <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">{property.name}</p>
                     </div>
-                    <div>
-                        <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Check-out</p>
-                        <p className="text-sm font-semibold text-[var(--foreground)]">
-                            {checkOut ? format(checkOut, "EEE, MMM d") : "Select date"}
-                        </p>
-                    </div>
+                    <button
+                        onClick={onCancel}
+                        className="p-2 rounded-xl bg-[var(--input-bg)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
-                {/* Inputs */}
-                <div className="space-y-4">
-                    <div className="relative">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500">
-                            <User size={18} />
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Stay Duration */}
+                    <div className="grid grid-cols-2 gap-px bg-[var(--glass-border)] rounded-2xl overflow-hidden border border-[var(--glass-border)]">
+                        <div className="bg-[var(--input-bg)]/50 p-4">
+                            <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-1">Check-in</p>
+                            <p className="text-sm font-black text-[var(--foreground)]">{format(checkIn, "MMM d, yyyy")}</p>
                         </div>
-                        <input
-                            type="text"
-                            required
-                            placeholder="Guest Name"
-                            className="w-full glass-input pl-12 pr-4 py-3 placeholder:text-[var(--foreground-muted)]/50"
-                            value={formData.guestName}
-                            onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="relative">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500">
-                            <Phone size={18} />
+                        <div className="bg-[var(--input-bg)]/50 p-4 text-right">
+                            <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-[0.1em] mb-1">Check-out</p>
+                            <p className="text-sm font-black text-[var(--foreground)]">
+                                {checkOut ? format(checkOut, "MMM d, yyyy") : "Pending..."}
+                            </p>
                         </div>
-                        <input
-                            type="tel"
-                            required
-                            placeholder="Guest Phone"
-                            className="w-full glass-input pl-12 pr-4 py-3 placeholder:text-[var(--foreground-muted)]/50"
-                            value={formData.guestPhone}
-                            onChange={(e) => setFormData({ ...formData, guestPhone: e.target.value })}
-                        />
                     </div>
-
-                    <div className="relative">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500">
-                            <Mail size={18} />
-                        </div>
-                        <input
-                            type="email"
-                            placeholder="Guest Email (Optional)"
-                            className="w-full glass-input pl-12 pr-4 py-3 placeholder:text-[var(--foreground-muted)]/50"
-                            value={formData.guestEmail}
-                            onChange={(e) => setFormData({ ...formData, guestEmail: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Guest Information */}
+                    <div className="space-y-4">
                         <div className="relative">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500">
-                                <Users size={18} />
-                            </div>
+                            <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest ml-1 mb-1.5 block">Full Name</label>
                             <input
-                                type="number"
-                                min="1"
+                                type="text"
                                 required
-                                placeholder="Guests"
-                                className="w-full glass-input pl-12 pr-4 py-3 placeholder:text-[var(--foreground-muted)]/50"
-                                value={formData.numGuests}
-                                onChange={(e) => setFormData({ ...formData, numGuests: parseInt(e.target.value) })}
+                                placeholder="Guest contact name"
+                                className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] outline-none transition-all"
+                                value={formData.guestName}
+                                onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
                             />
                         </div>
-                        <div className="flex items-center justify-center text-xs font-bold text-indigo-500">
-                            Max {property.maxGuests}
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest ml-1 mb-1.5 block">Phone No.</label>
+                                <input
+                                    type="tel"
+                                    required
+                                    placeholder="+91..."
+                                    className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] outline-none transition-all"
+                                    value={formData.guestPhone}
+                                    onChange={(e) => setFormData({ ...formData, guestPhone: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest ml-1 mb-1.5 block">No. of Guests</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={property.maxGuests}
+                                        required
+                                        className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm font-black text-[var(--foreground)] outline-none transition-all"
+                                        value={formData.numGuests}
+                                        onChange={(e) => setFormData({ ...formData, numGuests: parseInt(e.target.value) || 1 })}
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--foreground-muted)]">/ {property.maxGuests}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Custom Pricing Section */}
-                    <div className="pt-4 space-y-4">
-                        <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Custom Pricing</p>
-                        <div className="grid grid-cols-2 gap-4">
+                    {/* Pricing Config */}
+                    <div className="p-5 rounded-3xl bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary)]/20 space-y-5">
+                        <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase ml-1 mb-1 block">Price / Night</label>
+                                <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block">Price / Night</label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--foreground-muted)]">₹</span>
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-black">₹</span>
                                     <input
                                         type="number"
-                                        className="w-full glass-input pl-7 pr-4 py-2 text-sm"
+                                        className="w-full bg-white/10 border-b-2 border-white/20 focus:border-white focus:bg-white/20 rounded-t-lg pl-7 pr-2 py-2 text-sm font-black outline-none transition-all"
                                         value={formData.pricePerNight}
                                         onChange={(e) => setFormData({ ...formData, pricePerNight: parseInt(e.target.value) || 0 })}
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase ml-1 mb-1 block">Total Amount</label>
+                                <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block">Advance Payment</label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--foreground-muted)]">₹</span>
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-black">₹</span>
                                     <input
                                         type="number"
-                                        className="w-full glass-input pl-7 pr-4 py-2 text-sm font-bold text-indigo-500"
+                                        className="w-full bg-white/10 border-b-2 border-white/20 focus:border-white focus:bg-white/20 rounded-t-lg pl-7 pr-2 py-2 text-sm font-black outline-none transition-all"
+                                        value={formData.advancePayment}
+                                        onChange={(e) => setFormData({ ...formData, advancePayment: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block">Final Total</label>
+                                <div className="relative">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-black text-[var(--secondary)]">₹</span>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-white/10 border-b-2 border-[var(--secondary)]/50 focus:border-[var(--secondary)] focus:bg-white/20 rounded-t-lg pl-7 pr-2 py-2 text-lg font-black text-[var(--secondary)] outline-none transition-all"
                                         value={formData.totalAmount}
                                         onChange={(e) => setFormData({ ...formData, totalAmount: parseInt(e.target.value) || 0 })}
                                     />
                                 </div>
                             </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block">Commission</label>
+                                <div className="relative">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-black">₹</span>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-white/10 border-b-2 border-white/20 focus:border-white focus:bg-white/20 rounded-t-lg pl-7 pr-2 py-2 text-sm font-black outline-none transition-all"
+                                        value={formData.agentCommission}
+                                        onChange={(e) => setFormData({ ...formData, agentCommission: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-2">
+                            <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-2 block">Payment via</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {["upi", "cash", "other"].map((method) => (
+                                    <button
+                                        key={method}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, paymentMethod: method })}
+                                        className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.paymentMethod === method
+                                            ? "bg-[var(--secondary)] text-[var(--primary)]"
+                                            : "bg-white/10 text-white hover:bg-white/20"
+                                            }`}
+                                    >
+                                        {method}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="relative">
-                        <div className="absolute left-4 top-4 text-indigo-500">
-                            <FileText size={18} />
-                        </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest ml-1 mb-1.5 block">Special Requests</label>
                         <textarea
-                            placeholder="Special Requests or Notes"
+                            placeholder="Add meal preferences, pickup info, etc."
                             rows={3}
-                            className="w-full glass-input pl-12 pr-4 py-3 resize-none placeholder:text-[var(--foreground-muted)]/50"
+                            className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm text-[var(--foreground)] outline-none transition-all resize-none"
                             value={formData.specialRequests}
                             onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
                         />
                     </div>
-                </div>
 
-                {/* Price Breakdown Summary */}
-                {checkOut && (
-                    <div className="pt-6 border-t border-[var(--glass-border)] space-y-3">
-                        <div className="flex justify-between text-sm">
-                            <span className="text-[var(--foreground-muted)]">
-                                ₹{formData.pricePerNight.toLocaleString()} x {numNights} nights
+                    {/* Action Button */}
+                    <div className="pt-4">
+                        <Button
+                            type="submit"
+                            disabled={!checkOut || loading}
+                            loading={loading}
+                            fullWidth
+                            className="h-14 !rounded-2xl"
+                        >
+                            <span className="flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest">
+                                Book Reservation
+                                <Send size={20} />
                             </span>
-                            <span className="text-[var(--foreground)] font-semibold text-[10px] line-through opacity-50">
-                                ₹{(numNights * property.pricePerNight).toLocaleString()}
-                            </span>
-                        </div>
-                        <div className="flex justify-between text-lg font-bold pt-2">
-                            <span className="text-[var(--foreground)]">Final Total</span>
-                            <span className="text-indigo-500">
-                                ₹{formData.totalAmount.toLocaleString()}
-                            </span>
-                        </div>
+                        </Button>
                     </div>
-                )}
 
-                {/* Action Button */}
-                <Button
-                    type="submit"
-                    disabled={!checkOut || loading}
-                    loading={loading}
-                    fullWidth
-                    className="group"
-                >
-                    <span className="flex items-center justify-center gap-2">
-                        Confirm Booking
-                        <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    </span>
-                </Button>
-
-                <div className="flex items-center justify-center gap-2 text-xs text-emerald-500 font-bold">
-                    <CheckCircle2 size={14} />
-                    <span>Real-time availability validation active</span>
-                </div>
-            </form>
+                    <div className="flex items-center justify-center gap-2 text-[10px] text-emerald-500 font-black uppercase tracking-widest">
+                        <CheckCircle2 size={12} />
+                        <span>Instant verification active</span>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }

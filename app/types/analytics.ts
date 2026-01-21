@@ -10,6 +10,8 @@ export interface PropertyStats {
 }
 
 export interface OwnerAnalytics {
+    ownerName: string;
+    ownerPhone: string;
     totalProperties: number;
     totalBookings: number;
     totalRevenue: number;
@@ -32,6 +34,8 @@ export interface OwnerAnalytics {
 }
 
 export interface AgentAnalytics {
+    agentName: string;
+    agentPhone: string;
     totalBookings: number;
     totalBookingValue: number;
     totalCollected: number;

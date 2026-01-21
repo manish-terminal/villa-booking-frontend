@@ -66,6 +66,23 @@ class ApiClient {
         return data as T;
     }
 
+    // Check if user exists
+    async checkUser(phone: string): Promise<{
+        exists: boolean;
+        hasPassword?: boolean;
+        role?: "admin" | "owner" | "agent";
+        status?: "pending" | "approved" | "rejected";
+    }> {
+        return this.request<{
+            exists: boolean;
+            hasPassword?: boolean;
+            role?: "admin" | "owner" | "agent";
+            status?: "pending" | "approved" | "rejected";
+        }>(`/auth/check-user?phone=${phone}`, {
+            method: "GET",
+        });
+    }
+
     // Send OTP to phone number
     async sendOTP(phone: string): Promise<SendOTPResponse> {
         const payload: SendOTPRequest = { phone };
@@ -183,8 +200,8 @@ class ApiClient {
     }
 
     // Get invite codes for a property
-    async getPropertyInviteCodes(propertyId: string): Promise<{ codes: InviteCode[] }> {
-        return this.request<{ codes: InviteCode[] }>(`/properties/${propertyId}/invite-codes`, {
+    async getPropertyInviteCodes(propertyId: string): Promise<{ inviteCodes: InviteCode[], count: number }> {
+        return this.request<{ inviteCodes: InviteCode[], count: number }>(`/properties/${propertyId}/invite-codes`, {
             method: "GET",
         });
     }

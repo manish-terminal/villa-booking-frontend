@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { format, differenceInDays } from "date-fns";
-import { User, Phone, Mail, Users, FileText, Send, CheckCircle2 } from "lucide-react";
+import { Send, CheckCircle2, Coins } from "lucide-react";
 import Button from "@/app/components/Button";
 import { api } from "@/app/lib/api";
 import { useToast } from "@/app/components/Toast";
 import { CreateBookingRequest, Property } from "@/app/types/property";
 
-interface BookingSidebarProps {
+interface AgentBookingSidebarProps {
     property: Property;
     checkIn: Date | null;
     checkOut: Date | null;
@@ -16,13 +16,13 @@ interface BookingSidebarProps {
     onCancel: () => void;
 }
 
-export default function BookingSidebar({
+export default function AgentBookingSidebar({
     property,
     checkIn,
     checkOut,
     onSuccess,
     onCancel,
-}: BookingSidebarProps) {
+}: AgentBookingSidebarProps) {
     const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -74,7 +74,7 @@ export default function BookingSidebar({
                 return;
             }
 
-            // 2. Create booking
+            // 2. Create booking with agent commission
             const request: CreateBookingRequest = {
                 propertyId: property.id,
                 guestName: formData.guestName,
@@ -122,12 +122,12 @@ export default function BookingSidebar({
     if (!checkIn || !property) return null;
 
     return (
-        <div className="glass-card sticky top-8 animate-slide-up shadow-2xl overflow-hidden border-t-8 border-[var(--primary)]">
+        <div className="glass-card sticky top-8 animate-slide-up shadow-2xl overflow-hidden border-t-8 border-[var(--secondary)]">
             <div className="p-6 md:p-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h2 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">New Booking</h2>
-                        <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">{property.name}</p>
+                        <p className="text-[10px] font-black text-[var(--secondary)] uppercase tracking-widest mt-1">{property.name}</p>
                     </div>
                     <button
                         onClick={onCancel}
@@ -153,6 +153,7 @@ export default function BookingSidebar({
                             </p>
                         </div>
                     </div>
+
                     {/* Guest Information */}
                     <div className="space-y-4">
                         <div className="relative">
@@ -226,16 +227,32 @@ export default function BookingSidebar({
                             </div>
                         </div>
 
-                        <div>
-                            <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block">Final Total</label>
-                            <div className="relative">
-                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-black text-[var(--secondary)]">₹</span>
-                                <input
-                                    type="number"
-                                    className="w-full bg-white/10 border-b-2 border-[var(--secondary)]/50 focus:border-[var(--secondary)] focus:bg-white/20 rounded-t-lg pl-7 pr-2 py-2 text-lg font-black text-[var(--secondary)] outline-none transition-all"
-                                    value={formData.totalAmount}
-                                    onChange={(e) => setFormData({ ...formData, totalAmount: parseInt(e.target.value) || 0 })}
-                                />
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block">Final Total</label>
+                                <div className="relative">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-black text-[var(--secondary)]">₹</span>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-white/10 border-b-2 border-[var(--secondary)]/50 focus:border-[var(--secondary)] focus:bg-white/20 rounded-t-lg pl-7 pr-2 py-2 text-lg font-black text-[var(--secondary)] outline-none transition-all"
+                                        value={formData.totalAmount}
+                                        onChange={(e) => setFormData({ ...formData, totalAmount: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block flex items-center gap-1.5">
+                                    <Coins size={12} /> My Commission
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-black text-emerald-300">₹</span>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-emerald-500/20 border-b-2 border-emerald-400/50 focus:border-emerald-300 focus:bg-emerald-500/30 rounded-t-lg pl-7 pr-2 py-2 text-lg font-black text-emerald-300 outline-none transition-all"
+                                        value={formData.agentCommission}
+                                        onChange={(e) => setFormData({ ...formData, agentCommission: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
                             </div>
                         </div>
 

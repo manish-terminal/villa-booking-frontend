@@ -16,116 +16,139 @@ import {
 } from "@/app/lib/auth";
 import { APIError } from "@/app/types/auth";
 
-type LoginMode = "otp" | "password";
+type UserStatus = {
+    exists: boolean;
+    hasPassword?: boolean;
+    role?: "admin" | "owner" | "agent";
+    status?: "pending" | "approved" | "rejected";
+};
 
 export default function LoginPage() {
     const router = useRouter();
     const { showToast } = useToast();
 
-    const [mode, setMode] = useState<LoginMode>("otp");
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
-    const [rememberPhone, setRememberPhoneChecked] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<{ phone?: string; password?: string }>({});
+    const [error, setError] = useState<string | undefined>();
+    const [passwordError, setPasswordError] = useState<string | undefined>();
+
+    // User check state
+    const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
+    const [showPasswordOption, setShowPasswordOption] = useState(false);
 
     // Load remembered phone
     useEffect(() => {
         const remembered = getRememberedPhone();
         if (remembered) {
             setPhone(remembered);
-            setRememberPhoneChecked(true);
         }
     }, []);
 
     const validatePhone = (): boolean => {
         if (!phone) {
-            setErrors({ phone: "Phone number is required" });
+            setError("Phone number is required");
             return false;
         }
         if (phone.length !== 10) {
-            setErrors({ phone: "Please enter a valid 10-digit phone number" });
+            setError("Please enter a valid 10-digit phone number");
             return false;
         }
-        setErrors({});
+        setError(undefined);
         return true;
     };
 
-    const validatePassword = (): boolean => {
-        if (!password) {
-            setErrors((prev) => ({ ...prev, password: "Password is required" }));
-            return false;
-        }
-        if (password.length < 6) {
-            setErrors((prev) => ({
-                ...prev,
-                password: "Password must be at least 6 characters",
-            }));
-            return false;
-        }
-        return true;
-    };
-
-    const handleSendOTP = async () => {
+    // Step 1: Check if user exists
+    const handleContinue = async () => {
         if (!validatePhone()) return;
 
         setLoading(true);
         try {
-            const response = await api.sendOTP(phone);
+            // Check if user exists
+            const status = await api.checkUser(phone);
+            setUserStatus(status);
 
-            // Remember phone if checked
-            if (rememberPhone) {
+            if (!status.exists) {
+                // New user - send OTP and go to registration
+                await api.sendOTP(phone);
                 setRememberedPhone(phone);
+                showToast("OTP sent! Please complete registration.", "success");
+                router.push(`/verify?phone=${phone}&new=true`);
+            } else if (status.status === "pending") {
+                // User awaiting approval
+                showToast("Your account is pending approval. Please wait.", "info");
+            } else if (status.status === "rejected") {
+                // User rejected
+                showToast("Your account has been rejected. Contact support.", "error");
+            } else if (status.hasPassword) {
+                // Existing user with password - show password option
+                setShowPasswordOption(true);
+            } else {
+                // Existing user without password - send OTP directly
+                await api.sendOTP(phone);
+                setRememberedPhone(phone);
+                showToast("OTP sent!", "success");
+                router.push(`/verify?phone=${phone}`);
             }
-
-            showToast(response.message || "OTP sent successfully!", "success");
-
-            // Navigate to verify page with phone in query
-            router.push(`/verify?phone=${phone}`);
-        } catch (error) {
-            const apiError = error as APIError;
-            showToast(apiError.error || "Failed to send OTP", "error");
+        } catch (err) {
+            const apiError = err as APIError;
+            showToast(apiError.error || "Something went wrong", "error");
         } finally {
             setLoading(false);
         }
     };
 
+    // Login with password
     const handlePasswordLogin = async () => {
-        const isPhoneValid = validatePhone();
-        const isPasswordValid = validatePassword();
-
-        if (!isPhoneValid || !isPasswordValid) return;
+        if (!password) {
+            setPasswordError("Password is required");
+            return;
+        }
+        if (password.length < 6) {
+            setPasswordError("Password must be at least 6 characters");
+            return;
+        }
+        setPasswordError(undefined);
 
         setLoading(true);
         try {
             const response = await api.login(phone, password);
-
-            // Remember phone if checked
-            if (rememberPhone) {
-                setRememberedPhone(phone);
-            }
-
-            // Store auth data
+            setRememberedPhone(phone);
             setToken(response.token);
             setUser(response.user);
-
-            showToast("Login successful!", "success");
-
-            // Redirect based on role
+            showToast("Welcome back!", "success");
             const redirectPath = getRedirectPath(response.user);
             router.push(redirectPath);
-        } catch (error) {
-            const apiError = error as APIError;
+        } catch (err) {
+            const apiError = err as APIError;
             showToast(apiError.error || "Login failed", "error");
         } finally {
             setLoading(false);
         }
     };
 
-    const switchMode = (newMode: LoginMode) => {
-        setMode(newMode);
-        setErrors({});
+    // Send OTP instead of password
+    const handleSendOTPInstead = async () => {
+        setLoading(true);
+        try {
+            await api.sendOTP(phone);
+            setRememberedPhone(phone);
+            showToast("OTP sent!", "success");
+            router.push(`/verify?phone=${phone}`);
+        } catch (err) {
+            const apiError = err as APIError;
+            showToast(apiError.error || "Failed to send OTP", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Go back to phone input
+    const handleBack = () => {
+        setShowPasswordOption(false);
+        setUserStatus(null);
         setPassword("");
+        setPasswordError(undefined);
     };
 
     return (
@@ -144,87 +167,102 @@ export default function LoginPage() {
                             <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] text-[var(--secondary)] uppercase">India's Premium Stays</span>
                         </div>
                         <h1 className="text-3xl sm:text-4xl font-black text-[var(--primary)] tracking-tight">
-                            Welcome Back
+                            {showPasswordOption ? "Welcome Back" : "Sign In"}
                         </h1>
                     </div>
-                    <p className="text-sm sm:text-base text-[var(--foreground-muted)] font-medium px-4">Please enter your details to sign in.</p>
+                    <p className="text-sm sm:text-base text-[var(--foreground-muted)] font-medium px-4">
+                        {showPasswordOption
+                            ? `Signing in as +91 ${phone.slice(0, 5)}xxxxx`
+                            : "Enter your phone number to continue"}
+                    </p>
                 </div>
 
                 {/* Main Card */}
                 <div className="glass-card p-6 sm:p-10 space-y-6 sm:space-y-8 shadow-2xl">
-                    {/* Login Form */}
-                    <div className="space-y-5 sm:space-y-6">
-                        {/* Phone Input */}
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center px-1">
-                                <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)]">Phone Number</label>
-                            </div>
-                            <PhoneInput
-                                value={phone}
-                                onChange={(value) => {
-                                    setPhone(value);
-                                    if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
-                                }}
-                                error={errors.phone}
-                                disabled={loading}
-                                autoFocus
-                            />
-                        </div>
-
-                        {/* Password Input - Only in password mode */}
-                        {mode === "password" && (
-                            <div className="space-y-2 animate-slide-up">
+                    {!showPasswordOption ? (
+                        /* Phone Input Screen */
+                        <div className="space-y-5 sm:space-y-6">
+                            <div className="space-y-2">
                                 <div className="flex justify-between items-center px-1">
-                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)]">Password</label>
-                                    <button
-                                        type="button"
-                                        className="text-[10px] font-black uppercase tracking-widest text-[var(--secondary)] hover:opacity-70 transition-opacity"
-                                        onClick={() => showToast("Reset feature coming soon", "info")}
-                                    >
-                                        Forgot?
-                                    </button>
+                                    <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)]">Phone Number</label>
+                                </div>
+                                <PhoneInput
+                                    value={phone}
+                                    onChange={(value) => {
+                                        setPhone(value);
+                                        if (error) setError(undefined);
+                                    }}
+                                    error={error}
+                                    disabled={loading}
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="pt-4">
+                                <Button
+                                    onClick={handleContinue}
+                                    loading={loading}
+                                    className="shadow-lg shadow-[var(--primary)]/5 uppercase text-xs tracking-[0.2em]"
+                                >
+                                    Continue
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Password / OTP Choice Screen */
+                        <div className="space-y-5 sm:space-y-6 animate-fade-in">
+                            {/* Back Button */}
+                            <button
+                                onClick={handleBack}
+                                className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors group"
+                            >
+                                <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span>Change Phone</span>
+                            </button>
+
+                            {/* Password Input */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center px-1">
+                                    <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)]">Password</label>
                                 </div>
                                 <PasswordInput
                                     value={password}
                                     onChange={(value) => {
                                         setPassword(value);
-                                        if (errors.password)
-                                            setErrors((prev) => ({ ...prev, password: undefined }));
+                                        if (passwordError) setPasswordError(undefined);
                                     }}
-                                    error={errors.password}
+                                    error={passwordError}
                                     disabled={loading}
-                                    placeholder="Enter your security phrase"
+                                    placeholder="Enter your password"
                                 />
                             </div>
-                        )}
 
-                        <div className="pt-4 space-y-5">
-                            <Button
-                                onClick={mode === "otp" ? handleSendOTP : handlePasswordLogin}
-                                loading={loading}
-                                className="shadow-lg shadow-[var(--primary)]/5 uppercase text-xs tracking-[0.2em]"
-                            >
-                                {mode === "otp" ? "Send Access Code" : "Sign In"}
-                            </Button>
+                            <div className="pt-2 space-y-4">
+                                <Button
+                                    onClick={handlePasswordLogin}
+                                    loading={loading}
+                                    className="shadow-lg shadow-[var(--primary)]/5 uppercase text-xs tracking-[0.2em]"
+                                >
+                                    Sign In
+                                </Button>
 
-                            <button
-                                type="button"
-                                onClick={() => switchMode(mode === "otp" ? "password" : "otp")}
-                                className="w-full text-center text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors py-2"
-                            >
-                                {mode === "otp"
-                                    ? "Login with Password instead"
-                                    : "Login with OTP instead"}
-                            </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSendOTPInstead}
+                                    disabled={loading}
+                                    className="w-full text-center text-xs font-black uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors py-2 disabled:opacity-50"
+                                >
+                                    Use OTP Instead
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Trust Footer */}
                 <div className="mt-12 text-center space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground-muted)] opacity-50">
-   
-                    </p>
                     <div className="flex justify-center gap-6 saturate-0 opacity-30">
                         <div className="flex items-center gap-1.5 grayscale">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -58,7 +58,7 @@ export default function PhoneInput({
     return (
         <div className="relative">
             <div
-                className={`flex items-stretch glass-input !p-0 overflow-hidden ${error ? "error" : ""
+                className={`flex items-stretch glass-input !p-0 overflow-hidden transition-all duration-300 border border-[var(--glass-border)] focus-within:border-[var(--secondary)] focus-within:ring-4 focus-within:ring-[var(--secondary)]/10 ${error ? "border-rose-500 ring-rose-500/10" : ""
                     } ${disabled ? "opacity-50" : ""}`}
             >
                 {/* Fixed Country Code - Mobile Optimized */}

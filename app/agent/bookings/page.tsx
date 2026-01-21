@@ -10,7 +10,7 @@ import { getUser } from "@/app/lib/auth";
 import BookingList from "@/app/components/BookingList";
 import Calendar from "@/app/components/Calendar";
 import BookingDetailsModal from "@/app/components/BookingDetailsModal";
-import BookingSidebar from "@/app/components/BookingSidebar";
+import AgentBookingSidebar from "@/app/components/AgentBookingSidebar";
 import Button from "@/app/components/Button";
 import { Calendar as CalendarIcon, List, Search, RefreshCw } from "lucide-react";
 
@@ -241,7 +241,7 @@ function AgentBookingsContent() {
                                     </div>
                                 ) : (
                                     <div className="animate-scale-in">
-                                        <BookingSidebar
+                                        <AgentBookingSidebar
                                             property={selectedProperty!}
                                             checkIn={checkIn}
                                             checkOut={checkOut}

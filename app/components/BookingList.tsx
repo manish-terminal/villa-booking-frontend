@@ -13,7 +13,8 @@ import {
     Ban,
     UserCheck,
     LogOut,
-    ExternalLink
+    ExternalLink,
+    Phone
 } from "lucide-react";
 import { Booking } from "@/app/types/property";
 
@@ -58,48 +59,52 @@ export default function BookingList({ bookings, onSelectBooking }: BookingListPr
     };
 
     return (
-        <div className="space-y-4">
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
+        <div className="space-y-6">
+            {/* Premium Filters Header */}
+            <div className="flex flex-col md:flex-row gap-4 p-2 bg-[var(--input-bg)]/50 rounded-3xl border border-[var(--glass-border)] transition-all">
                 <div className="relative flex-1">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]">
                         <Search size={18} />
                     </div>
                     <input
                         type="text"
-                        placeholder="Guest name, phone or ID..."
-                        className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl pl-12 pr-4 py-3 text-sm text-[var(--foreground)] transition-all outline-none"
+                        placeholder="Search guests, phone or ID..."
+                        className="w-full bg-[var(--input-bg)] border border-[var(--glass-border)] focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 rounded-2xl pl-12 pr-4 py-3 text-sm text-[var(--foreground)] transition-all outline-none placeholder:text-[var(--foreground-muted)]/50"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="relative">
+                <div className="relative min-w-[200px]">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none">
+                        <Filter size={16} />
+                    </div>
                     <select
-                        className="w-full md:w-auto bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3 text-sm font-bold text-[var(--foreground)] appearance-none cursor-pointer min-w-[180px] outline-none"
+                        className="w-full bg-[var(--input-bg)] border border-[var(--glass-border)] focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 rounded-2xl pl-12 pr-10 py-3 text-sm font-bold text-[var(--foreground)] appearance-none cursor-pointer outline-none transition-all"
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
-                        <option value="all">Every Status</option>
-                        <option value="pending_confirmation">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="checked_in">Checked In</option>
-                        <option value="checked_out">Checked Out</option>
+                        <option value="all">All Statuses</option>
+                        <option value="pending_confirmation">Pending Orders</option>
+                        <option value="confirmed">Confirmed Stays</option>
+                        <option value="checked_in">Active Stays</option>
+                        <option value="checked_out">Past Choices</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--foreground-muted)]">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronRight size={16} className="rotate-90" />
                     </div>
                 </div>
             </div>
 
-            {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Cards Grid with Staggered Entrance */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 stagger-children">
                 {filteredBookings.length === 0 ? (
-                    <div className="col-span-full py-16 glass-card flex flex-col items-center justify-center text-[var(--foreground-muted)] border-dashed border-2">
-                        <Calendar size={48} className="opacity-20 mb-4" />
-                        <p className="font-semibold">No bookings found matching your filters</p>
+                    <div className="col-span-full py-24 glass-card flex flex-col items-center justify-center text-[var(--foreground-muted)] border-dashed border-2 animate-fade-in">
+                        <div className="w-20 h-20 bg-[var(--input-bg)] rounded-3xl flex items-center justify-center mb-6 opacity-20">
+                            <Calendar size={40} />
+                        </div>
+                        <p className="text-lg font-serif">No reservations found</p>
+                        <p className="text-xs uppercase tracking-widest mt-2 opacity-60">Try adjusting your filters</p>
                     </div>
                 ) : (
                     filteredBookings.map((booking) => {
@@ -108,68 +113,82 @@ export default function BookingList({ bookings, onSelectBooking }: BookingListPr
                             <div
                                 key={booking.id}
                                 onClick={() => onSelectBooking(booking)}
-                                className="glass-card group cursor-pointer hover:shadow-2xl transition-all duration-300 animate-fade-in relative overflow-hidden"
+                                className="glass-card group cursor-pointer hover:shadow-2xl hover:shadow-[var(--primary)]/5 transition-all duration-500 animate-slide-up relative overflow-hidden flex flex-col border border-[var(--glass-border)]/50 hover:border-[var(--secondary)]/30"
                             >
-                                {/* Status Chip */}
-                                <div className="absolute top-4 right-4">
-                                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${status.bg} ${status.color}`}>
-                                        <status.icon size={12} />
-                                        {status.label}
-                                    </span>
-                                </div>
+                                {/* Decorative Gradient Overlay */}
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--secondary)]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                                <div className="p-6 space-y-6">
-                                    {/* Guest Info */}
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-[var(--input-bg)] text-[var(--primary)] flex items-center justify-center font-black text-xl shadow-lg group-hover:scale-105 transition-transform">
-                                            {booking.guestName.charAt(0)}
+                                <div className="p-6 space-y-6 flex-1">
+                                    {/* Header: Status & ID */}
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[9px] font-black text-[var(--foreground-muted)] uppercase tracking-[0.2em] opacity-40">
+                                            #{booking.id.slice(-8)}
+                                        </span>
+                                        <div className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${status.bg} ${status.color}`}>
+                                            <status.icon size={10} />
+                                            {status.label}
                                         </div>
-                                        <div className="flex-1 min-w-0 pr-16">
-                                            <h4 className="text-lg font-bold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors">
+                                    </div>
+
+                                    {/* Guest Identity */}
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--input-bg)] to-[var(--input-bg)]/50 text-[var(--primary)] flex items-center justify-center font-serif text-3xl shadow-lg shadow-[var(--primary)]/5 group-hover:scale-105 transition-transform duration-500 relative overflow-hidden">
+                                            <span className="relative z-10">{booking.guestName.charAt(0)}</span>
+                                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </div>
+                                        <div className="flex-1 min-w-0 pt-1">
+                                            <h4 className="text-2xl font-serif text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors leading-tight">
                                                 {booking.guestName}
                                             </h4>
-                                            <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest mt-0.5">
-                                                ID: {booking.id.slice(-8)}
+                                            <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest mt-1 flex items-center gap-2">
+                                                <Phone size={10} className="text-[var(--secondary)]" />
+                                                {booking.guestPhone}
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Stay Details */}
-                                    <div className="grid grid-cols-2 gap-4 py-4 border-y border-[var(--glass-border)]">
-                                        <div>
-                                            <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase mb-1">Check-in</p>
-                                            <p className="text-sm font-black text-[var(--foreground)]">{format(new Date(booking.checkIn), "MMM d, yyyy")}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase mb-1">Check-out</p>
-                                            <p className="text-sm font-black text-[var(--foreground)]">{format(new Date(booking.checkOut), "MMM d, yyyy")}</p>
-                                        </div>
-                                        <div className="col-span-2 pt-2 flex justify-between text-[10px] font-bold text-[var(--foreground-muted)] uppercase">
-                                            <span className="flex items-center gap-1">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--secondary)]"></div>
-                                                {booking.numNights} Nights
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]"></div>
-                                                {booking.numGuests} Guests
-                                            </span>
+                                    {/* Trip Timeline Visual */}
+                                    <div className="relative py-6 px-1">
+                                        <div className="absolute left-[3px] top-9 bottom-9 w-[1px] bg-gradient-to-b from-[var(--secondary)]/50 via-[var(--secondary)]/10 to-[var(--secondary)]/50 hidden sm:block" />
+                                        <div className="space-y-6 relative">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-2 h-2 rounded-full border-2 border-[var(--secondary)] bg-white z-10 hidden sm:block" />
+                                                <div className="flex-1">
+                                                    <p className="text-[9px] font-black text-[var(--foreground-muted)] uppercase tracking-wider mb-0.5 opacity-60">Arrival</p>
+                                                    <p className="text-sm font-bold text-[var(--foreground)]">{format(new Date(booking.checkIn), "EEE, MMM d, yyyy")}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-2 h-2 rounded-full bg-[var(--secondary)] z-10 hidden sm:block" />
+                                                <div className="flex-1">
+                                                    <p className="text-[9px] font-black text-[var(--foreground-muted)] uppercase tracking-wider mb-0.5 opacity-60">Departure</p>
+                                                    <p className="text-sm font-bold text-[var(--foreground)]">{format(new Date(booking.checkOut), "EEE, MMM d, yyyy")}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Pricing Summary */}
-                                    <div className="flex items-end justify-between">
-                                        <div>
-                                            <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase mb-1">Total Stay</p>
-                                            <p className="text-2xl font-black text-[var(--primary)] tracking-tight">₹{booking.totalAmount.toLocaleString()}</p>
+                                    {/* Quick Stats Pod */}
+                                    <div className="grid grid-cols-2 gap-px bg-[var(--glass-border)] rounded-2xl overflow-hidden border border-[var(--glass-border)]">
+                                        <div className="bg-[var(--input-bg)]/40 p-3 text-center">
+                                            <p className="text-[8px] font-black text-[var(--foreground-muted)] uppercase tracking-tighter mb-1">Stay Duration</p>
+                                            <p className="text-xs font-black text-[var(--foreground)]">{booking.numNights} Nights</p>
                                         </div>
-                                        {booking.agentCommission > 0 && (
-                                            <div className="text-right">
-                                                <p className="text-[10px] font-bold text-orange-500 uppercase mb-1">Commission</p>
-                                                <p className="text-xs font-black text-white bg-orange-500 px-2 py-1 rounded-lg">
-                                                    ₹{booking.agentCommission.toLocaleString()}
-                                                </p>
-                                            </div>
-                                        )}
+                                        <div className="bg-[var(--input-bg)]/40 p-3 text-center">
+                                            <p className="text-[8px] font-black text-[var(--foreground-muted)] uppercase tracking-tighter mb-1">Full Party</p>
+                                            <p className="text-xs font-black text-[var(--foreground)]">{booking.numGuests} Guests</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Pricing Bottom Bar */}
+                                <div className="p-6 bg-[var(--input-bg)]/30 border-t border-[var(--glass-border)] flex items-center justify-between group-hover:bg-[var(--primary)]/5 transition-colors">
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] font-black text-[var(--foreground-muted)] uppercase tracking-widest leading-none mb-1">Direct Rev</span>
+                                        <span className="text-2xl font-serif text-[var(--primary)] tracking-tight">₹{booking.totalAmount.toLocaleString()}</span>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full border border-[var(--glass-border)] flex items-center justify-center text-[var(--foreground-muted)] group-hover:bg-[var(--primary)] group-hover:text-white group-hover:border-transparent transition-all duration-300">
+                                        <ChevronRight size={20} />
                                     </div>
                                 </div>
                             </div>

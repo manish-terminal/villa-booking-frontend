@@ -51,44 +51,49 @@ function VerifyPageContent() {
         }
     }, [resendTimer]);
 
-    // Move to profile step or login if existing user
+    // Check if this is a new user registration (passed from login page)
+    const isNewUser = searchParams.get("new") === "true";
+
+    // Handle OTP completion based on user status
     const handleOTPComplete = async (value: string) => {
         if (value.length !== 6) return;
+
+        // If already marked as new user from login page, skip API check
+        if (isNewUser) {
+            setStep("profile");
+            return;
+        }
 
         setLoading(true);
         setError(false);
 
         try {
-            // Try verifying without name/role first
-            const response = await api.verifyOTP(phone, value);
+            // Check if user exists (doesn't consume OTP)
+            const userCheck = await api.checkUser(phone);
 
-            if (response.token && !response.isNew) {
-                // Existing user - Login directly
-                setToken(response.token);
-                setUser(response.user);
-                showToast("Welcome back!", "success");
+            if (userCheck.exists) {
+                // Existing user - verify OTP and login directly
+                const response = await api.verifyOTP(phone, value);
 
-                const redirectPath = getRedirectPath(response.user);
-                router.push(redirectPath);
+                if (response.token) {
+                    setToken(response.token);
+                    setUser(response.user);
+                    showToast("Welcome back!", "success");
+
+                    const redirectPath = getRedirectPath(response.user);
+                    router.push(redirectPath);
+                } else {
+                    showToast("Authentication failed", "error");
+                    setError(true);
+                }
             } else {
-                // New user - move to profile step
+                // New user - move to profile step (OTP not consumed yet)
                 setStep("profile");
             }
         } catch (err) {
             const apiError = err as APIError;
-            const errorMsg = apiError.error || "Verification failed";
-
-            // If it's a new user, we expect an error or isNew flag
-            // Allow moving to profile step if the error is about missing info
-            if (errorMsg.toLowerCase().includes("name") ||
-                errorMsg.toLowerCase().includes("role") ||
-                errorMsg.toLowerCase().includes("not found") ||
-                errorMsg.toLowerCase().includes("required")) {
-                setStep("profile");
-            } else {
-                showToast(errorMsg, "error");
-                setError(true);
-            }
+            showToast(apiError.error || "Verification failed", "error");
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -112,7 +117,7 @@ function VerifyPageContent() {
         return Object.keys(newErrors).length === 0;
     };
 
-    // Single API call with all data
+    // Single API call with all data - OTP is only verified once here
     const handleSubmit = async () => {
         if (!validateProfile()) return;
 
@@ -128,7 +133,7 @@ function VerifyPageContent() {
                 setUser(response.user);
                 showToast(response.isNew ? "Welcome to VillaBook!" : "Welcome back!", "success");
 
-                // All users are auto-approved, redirect to dashboard
+                // Redirect to dashboard
                 const redirectPath = getRedirectPath(response.user);
                 router.push(redirectPath);
             } else {
@@ -334,15 +339,6 @@ function VerifyPageContent() {
                                 </span>
                             </Button>
 
-                            {/* Description Block */}
-                            <div className="p-4 rounded-2xl bg-[var(--secondary-muted)]/30 border border-[var(--border)]">
-                                <p className="text-[11px] leading-relaxed text-[var(--foreground-muted)] font-medium">
-                                    {role === "owner"
-                                        ? <><strong className="text-[var(--primary)] uppercase font-black tracking-tighter mr-1">Owner Access:</strong> List unlimited villas, manage pricing, and invite sub-agents to your portfolio.</>
-                                        : <><strong className="text-[var(--primary)] uppercase font-black tracking-tighter mr-1">Agent Access:</strong> Search thousands of verified properties and book instantly for your clients.</>
-                                    }
-                                </p>
-                            </div>
                         </div>
                     )}
                 </div>
@@ -352,9 +348,7 @@ function VerifyPageContent() {
                     <p className="text-xs font-medium text-[var(--foreground-muted)]">
                         {step === "otp" ? (
                             <>Experiencing issues? <Link href="/login" className="text-[var(--primary)] font-bold decoration-[var(--secondary)] decoration-2 underline underline-offset-4">Sign in differently</Link></>
-                        ) : (
-                            <>Securing your data with <span className="text-[var(--primary)] font-bold">Bank-Grade Encryption</span></>
-                        )}
+                        ) : null}
                     </p>
                 </div>
             </div>

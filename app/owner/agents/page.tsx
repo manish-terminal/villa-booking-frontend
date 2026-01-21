@@ -23,15 +23,11 @@ function GenerateCodeModal({
 }) {
     const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
-    const [expiresInDays, setExpiresInDays] = useState(30);
-    const [maxUses, setMaxUses] = useState(10);
     const [generatedCode, setGeneratedCode] = useState<InviteCode | null>(null);
 
     // Reset when modal opens
     useEffect(() => {
         if (isOpen) {
-            setExpiresInDays(30);
-            setMaxUses(10);
             setGeneratedCode(null);
         }
     }, [isOpen]);
@@ -41,7 +37,8 @@ function GenerateCodeModal({
 
         setLoading(true);
         try {
-            const code = await api.generateInviteCode(property.id, expiresInDays, maxUses);
+            // Force 10 year expiry and 1 max use per user request
+            const code = await api.generateInviteCode(property.id, 3650, 1);
             setGeneratedCode(code);
             onGenerated(code);
             showToast("Invite code generated!", "success");
@@ -83,37 +80,11 @@ function GenerateCodeModal({
                 <div className="p-8">
                     {!generatedCode ? (
                         <div className="space-y-8">
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest ml-1 mb-2 block">Expiration</label>
-                                    <select
-                                        value={expiresInDays}
-                                        onChange={(e) => setExpiresInDays(parseInt(e.target.value))}
-                                        className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm font-bold text-[var(--foreground)] outline-none appearance-none transition-all cursor-pointer"
-                                    >
-                                        <option value={7}>7 Days Validity</option>
-                                        <option value={14}>14 Days Validity</option>
-                                        <option value={30}>30 Days Validity</option>
-                                        <option value={60}>60 Days Validity</option>
-                                        <option value={90}>90 Days Validity</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest ml-1 mb-2 block">Usage Limit</label>
-                                    <select
-                                        value={maxUses}
-                                        onChange={(e) => setMaxUses(parseInt(e.target.value))}
-                                        className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3.5 text-sm font-bold text-[var(--foreground)] outline-none appearance-none transition-all cursor-pointer"
-                                    >
-                                        <option value={1}>Single Use Code</option>
-                                        <option value={5}>5 Shared Uses</option>
-                                        <option value={10}>10 Shared Uses</option>
-                                        <option value={25}>25 Shared Uses</option>
-                                        <option value={50}>50 Shared Uses</option>
-                                        <option value={100}>Unlimited (100 uses)</option>
-                                    </select>
-                                </div>
+                            <div className="p-6 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10">
+                                <p className="text-xs font-bold text-[var(--foreground)] leading-relaxed text-center">
+                                    Each generated code is for <span className="text-[var(--primary)]">One-Time Use Only</span>.
+                                    Once an agent joins using this code, it will become inactive.
+                                </p>
                             </div>
 
                             <Button onClick={handleGenerate} loading={loading} fullWidth className="h-14 !rounded-2xl">
@@ -128,9 +99,7 @@ function GenerateCodeModal({
                                     {generatedCode.code.toUpperCase()}
                                 </div>
                                 <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-white/60 uppercase tracking-widest">
-                                    <span>Expires {format(new Date(generatedCode.expiresAt), "MMM d, yyyy")}</span>
-                                    <span className="opacity-30">•</span>
-                                    <span>Limit {generatedCode.maxUses} Uses</span>
+                                    <span>Single Use Only</span>
                                 </div>
                             </div>
 
@@ -142,7 +111,7 @@ function GenerateCodeModal({
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                     </svg>
-                                    Copy Link
+                                    Copy Code
                                 </button>
                                 <Button onClick={onClose} fullWidth className="h-14 !rounded-2xl">Done</Button>
                             </div>
@@ -255,12 +224,13 @@ function PropertyCodeCard({
                                             </span>
                                         </div>
                                         <p className="text-[9px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest flex items-center gap-3">
-                                            <span>Used: {code.usedCount || 0}/{code.maxUses || '∞'}</span>
-                                            <span className="opacity-30">•</span>
-                                            <span className="flex items-center gap-1.5">
-                                                <CalendarIcon size={10} />
-                                                {code.expiresAt ? format(new Date(code.expiresAt), "MMM d, yyyy") : 'No Expiry'}
-                                            </span>
+                                            <span>Single Use Code</span>
+                                            {code.usedCount > 0 && (
+                                                <>
+                                                    <span className="opacity-30">•</span>
+                                                    <span className="text-emerald-500">Used</span>
+                                                </>
+                                            )}
                                         </p>
                                     </div>
                                     <button

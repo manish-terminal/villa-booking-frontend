@@ -58,20 +58,15 @@ export default function PhoneInput({
     return (
         <div className="relative">
             <div
-                className={`flex items-stretch glass-input !p-0 overflow-hidden transition-all duration-300 border border-[var(--glass-border)] focus-within:border-[var(--secondary)] focus-within:ring-4 focus-within:ring-[var(--secondary)]/10 ${error ? "border-rose-500 ring-rose-500/10" : ""
+                className={`flex items-center bg-white border rounded-2xl transition-all duration-300 ${error ? "border-rose-500 ring-4 ring-rose-500/5" : "border-slate-200 focus-within:border-[#0a192f] focus-within:ring-4 focus-within:ring-[#0a192f]/5"
                     } ${disabled ? "opacity-50" : ""}`}
             >
-                {/* Fixed Country Code - Mobile Optimized */}
-                <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3.5 border-r border-[var(--border)] bg-[var(--secondary-muted)]/10 shrink-0">
-                    <span className="text-xl sm:text-2xl shrink-0 leading-none">🇮🇳</span>
-                    <div className="flex flex-col items-start leading-none gap-0.5">
-                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter text-[var(--foreground-muted)] opacity-60">
-                            IND
-                        </span>
-                        <span className="text-sm sm:text-base font-bold text-[var(--primary)] whitespace-nowrap">
-                            +91
-                        </span>
-                    </div>
+                {/* Fixed Country Code - Simplified */}
+                <div className="flex items-center gap-2 pl-5 pr-3 py-4 border-r border-slate-100 shrink-0">
+                    <span className="text-xl leading-none">🇮🇳</span>
+                    <span className="text-sm font-black text-[#0a192f] tracking-tight">
+                        +91
+                    </span>
                 </div>
 
                 {/* Phone Input */}
@@ -83,24 +78,16 @@ export default function PhoneInput({
                     onChange={handlePhoneChange}
                     disabled={disabled}
                     placeholder={placeholder}
-                    className="flex-1 min-w-0 px-3 sm:px-5 py-3.5 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none text-base sm:text-lg font-medium"
+                    className="flex-1 px-4 py-4 bg-transparent text-[#0a192f] placeholder:text-slate-300 focus:outline-none text-base font-bold tracking-widest"
                     aria-label="Phone number"
                 />
             </div>
 
             {/* Error Message */}
             {error && (
-                <p className="form-error animate-fade-in">
-                    <svg
-                        className="w-3.5 h-3.5"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                    >
-                        <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                        />
+                <p className="flex items-center gap-1.5 text-[10px] font-bold text-rose-500 mt-2 px-1 animate-fade-in">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {error}
                 </p>

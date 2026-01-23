@@ -11,6 +11,7 @@ import {
 } from "@/app/types/auth";
 import { OwnerAnalytics, AgentAnalytics, DashboardStats } from "@/app/types/analytics";
 import { Property, CreatePropertyRequest, PropertiesListResponse, InviteCode, PropertyCalendarResponse, AvailabilityResponse, CreateBookingRequest, Booking, BookingsListResponse, Payment, OfflinePaymentRequest, PaymentSummary, PaymentListResponse } from "@/app/types/property";
+import { NotificationsResponse, UnreadCountResponse } from "@/app/types/notification";
 
 const API_BASE_URL =
     "https://vwn08g3i79.execute-api.ap-south-1.amazonaws.com/prod";
@@ -320,6 +321,40 @@ class ApiClient {
     async getDashboardStats(): Promise<DashboardStats> {
         return this.request<DashboardStats>("/analytics/dashboard", {
             method: "GET",
+        });
+    }
+
+    // --- Notifications ---
+
+    // List notifications
+    async getNotifications(limit: number = 50, unreadOnly: boolean = false): Promise<NotificationsResponse> {
+        const params = new URLSearchParams();
+        params.append("limit", limit.toString());
+        if (unreadOnly) params.append("unreadOnly", "true");
+        const query = `?${params.toString()}`;
+        return this.request<NotificationsResponse>(`/notifications${query}`, {
+            method: "GET",
+        });
+    }
+
+    // Get unread notifications count
+    async getUnreadNotificationsCount(): Promise<UnreadCountResponse> {
+        return this.request<UnreadCountResponse>("/notifications/count", {
+            method: "GET",
+        });
+    }
+
+    // Mark a specific notification as read
+    async markNotificationAsRead(id: string): Promise<{ message: string; notificationId: string }> {
+        return this.request<{ message: string; notificationId: string }>(`/notifications/${id}/read`, {
+            method: "PATCH",
+        });
+    }
+
+    // Mark all notifications as read
+    async markAllNotificationsAsRead(): Promise<{ message: string; count: number }> {
+        return this.request<{ message: string; count: number }>("/notifications/mark-all-read", {
+            method: "POST",
         });
     }
 }

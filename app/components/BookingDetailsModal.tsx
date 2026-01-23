@@ -174,7 +174,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
               </div>
 
               {/* Status Management */}
-              <section className="space-y-4">
+              {/* <section className="space-y-4">
                 <label className="text-[10px] font-black text-[var(--foreground-muted)] uppercase tracking-widest ml-1 block">Workflow Stage</label>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1.5 bg-[var(--input-bg)]/50 border border-[var(--glass-border)] rounded-2xl">
                   {statuses.map(s => (
@@ -195,7 +195,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
                     </button>
                   ))}
                 </div>
-              </section>
+              </section> */}
 
               {/* Contacts & Notes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -333,7 +333,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
                           </div>
                           <div>
                             <p className="text-sm font-black">₹{p.amount.toLocaleString()}</p>
-                            <p className="text-[8px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">{p.method} • {format(new Date(p.paymentDate), "MMM dd, hh:mm a")}</p>
+                            <p className="text-[8px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">{p.method} • {format(new Date(p.paymentDate), "MMM dd")}</p>
                           </div>
                         </div>
                       </div>
@@ -355,7 +355,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
             onClick={onClose}
             className="px-10 py-3 bg-[var(--foreground)] text-[var(--background)] rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-[var(--primary)] hover:text-white transition-all shadow-xl active:scale-95"
           >
-            Exit Dashboard
+            Close
           </button>
         </footer>
       </div>

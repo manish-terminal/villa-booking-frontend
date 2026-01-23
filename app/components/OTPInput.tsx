@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, KeyboardEvent, ClipboardEvent, useEffect } from "react";
+import { useRef, KeyboardEvent, ClipboardEvent, useEffect } from "react";
 
 interface OTPInputProps {
     length?: number;
@@ -22,19 +22,6 @@ export default function OTPInput({
     autoFocus = true,
 }: OTPInputProps) {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-    const [localValues, setLocalValues] = useState<string[]>(
-        Array(length).fill("")
-    );
-
-    // Sync local values with prop value
-    useEffect(() => {
-        const chars = value.split("").slice(0, length);
-        const newValues = [...Array(length).fill("")];
-        chars.forEach((char, i) => {
-            newValues[i] = char;
-        });
-        setLocalValues(newValues);
-    }, [value, length]);
 
     // Auto-focus first input
     useEffect(() => {
@@ -58,11 +45,11 @@ export default function OTPInput({
         // Only allow digits
         if (char && !/^\d$/.test(char)) return;
 
-        const newValues = [...localValues];
-        newValues[index] = char;
-        setLocalValues(newValues);
+        const newOTPArray = value.split("").slice(0, length);
+        while (newOTPArray.length < length) newOTPArray.push("");
+        newOTPArray[index] = char;
 
-        const newOTP = newValues.join("");
+        const newOTP = newOTPArray.join("");
         onChange(newOTP);
 
         // Move to next input if character was entered
@@ -82,19 +69,18 @@ export default function OTPInput({
         switch (e.key) {
             case "Backspace":
                 e.preventDefault();
-                if (localValues[index]) {
+                const currentOTPArray = value.split("").slice(0, length);
+                while (currentOTPArray.length < length) currentOTPArray.push("");
+
+                if (currentOTPArray[index]) {
                     // Clear current input
-                    const newValues = [...localValues];
-                    newValues[index] = "";
-                    setLocalValues(newValues);
-                    onChange(newValues.join(""));
+                    currentOTPArray[index] = "";
+                    onChange(currentOTPArray.join(""));
                 } else if (index > 0) {
                     // Move to previous input and clear it
                     focusInput(index - 1);
-                    const newValues = [...localValues];
-                    newValues[index - 1] = "";
-                    setLocalValues(newValues);
-                    onChange(newValues.join(""));
+                    currentOTPArray[index - 1] = "";
+                    onChange(currentOTPArray.join(""));
                 }
                 break;
             case "ArrowLeft":
@@ -117,14 +103,13 @@ export default function OTPInput({
         if (!pastedData) return;
 
         const chars = pastedData.slice(0, length).split("");
-        const newValues = [...Array(length).fill("")];
+        const newOTPArray = [...Array(length).fill("")];
 
         chars.forEach((char, i) => {
-            newValues[i] = char;
+            newOTPArray[i] = char;
         });
 
-        setLocalValues(newValues);
-        const newOTP = newValues.join("");
+        const newOTP = newOTPArray.join("");
         onChange(newOTP);
 
         // Focus appropriate input
@@ -149,13 +134,13 @@ export default function OTPInput({
                     inputMode="numeric"
                     pattern="\d*"
                     maxLength={1}
-                    value={localValues[index]}
+                    value={value[index] || ""}
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={handlePaste}
                     onFocus={(e) => e.target.select()}
                     disabled={disabled}
-                    className={`otp-input !text-center !p-0 ${localValues[index] ? "filled" : ""
+                    className={`otp-input !text-center !p-0 ${value[index] ? "filled" : ""
                         } ${error ? "error animate-shake" : ""} ${disabled ? "opacity-50 cursor-not-allowed" : ""
                         }`}
                     aria-label={`Digit ${index + 1}`}

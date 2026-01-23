@@ -194,7 +194,7 @@ export default function LoginPage() {
                                     disabled={loading}
                                     autoFocus
                                 />
-                                <p className="text-[10px] text-slate-400 font-medium px-1 text-center font-bold">We'll send you an OTP for secure verification.</p>
+                                <p className="text-[10px] text-slate-400 font-medium px-1 text-center font-bold font-bold">We&apos;ll send you an OTP for secure verification.</p>
                             </div>
 
                             <Button

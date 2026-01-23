@@ -221,8 +221,8 @@ export default function BookingsPage() {
                     <button
                         onClick={() => setViewMode('calendar')}
                         className={`flex-1 py-2.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-all ${viewMode === 'calendar'
-                                ? 'bg-[#051325] text-white shadow-md'
-                                : 'text-slate-500'
+                            ? 'bg-[#051325] text-white shadow-md'
+                            : 'text-slate-500'
                             }`}
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -233,8 +233,8 @@ export default function BookingsPage() {
                     <button
                         onClick={() => setViewMode('list')}
                         className={`flex-1 py-2.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-all ${viewMode === 'list'
-                                ? 'bg-[#051325] text-white shadow-md'
-                                : 'text-slate-500'
+                            ? 'bg-[#051325] text-white shadow-md'
+                            : 'text-slate-500'
                             }`}
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -285,7 +285,7 @@ export default function BookingsPage() {
                                 </svg>
                                 New Booking
                             </button>
-             
+
                         </div>
                     </div>
                 ) : (

@@ -28,7 +28,7 @@ export default function NotificationIndicator() {
     };
 
     useEffect(() => {
-        fetchNotifications();
+        Promise.resolve().then(fetchNotifications);
         // Poll for notifications every 2 minutes
         const interval = setInterval(fetchNotifications, 120000);
         return () => clearInterval(interval);

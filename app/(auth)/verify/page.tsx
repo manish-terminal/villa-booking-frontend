@@ -195,7 +195,7 @@ function VerifyPageContent() {
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                             <span className="text-xl sm:text-2xl">🇮🇳</span>
-                            <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] text-[var(--secondary)] uppercase">India's Premium Stays</span>
+                            <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] text-[var(--secondary)] uppercase">India&apos;s Premium Stays</span>
                         </div>
                         <h1 className="text-3xl sm:text-4xl font-black text-[var(--primary)] tracking-tight">
                             {step === "otp" ? "Verify Code" : "Finish Setup"}

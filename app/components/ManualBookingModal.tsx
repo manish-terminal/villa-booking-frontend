@@ -6,6 +6,7 @@ import { X, User, Phone, Mail, Users, FileText, Send, Calendar as CalendarIcon, 
 import Button from "@/app/components/Button";
 import { api } from "@/app/lib/api";
 import { useToast } from "@/app/components/Toast";
+import { APIError } from "@/app/types/auth";
 import { Property, CreateBookingRequest } from "@/app/types/property";
 
 interface ManualBookingModalProps {
@@ -83,8 +84,9 @@ export default function ManualBookingModal({ property, onClose, onSuccess }: Man
             showToast("Historical booking logged successfully", "success");
 
             onSuccess();
-        } catch (err: any) {
-            showToast(err.error || "Failed to log booking", "error");
+        } catch (err: unknown) {
+            const apiError = err as APIError;
+            showToast(apiError.error || "Failed to log booking", "error");
         } finally {
             setLoading(false);
         }

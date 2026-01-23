@@ -64,7 +64,10 @@ const navItems: NavItem[] = [
 export default function OwnerLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
-    const [user, setUser] = useState<User | null>(null);
+    const [user] = useState<User | null>(() => {
+        if (typeof window !== "undefined") return getUser();
+        return null;
+    });
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
@@ -73,8 +76,6 @@ export default function OwnerLayout({ children }: { children: ReactNode }) {
             router.replace("/login");
         } else if (currentUser.role !== "owner" && currentUser.role !== "admin") {
             router.replace("/agent/dashboard");
-        } else {
-            setUser(currentUser);
         }
     }, [router]);
 

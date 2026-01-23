@@ -288,7 +288,7 @@ function PropertyModal({ isOpen, onClose, property, onSave }: { isOpen: boolean;
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">{field.label}</label>
                 <input
                   type="number"
-                  value={(formData as Record<string, unknown>)[field.key] as number}
+                  value={(formData as unknown as Record<string, number>)[field.key]}
                   onChange={e => setFormData({ ...formData, [field.key]: parseInt(e.target.value) || 0 })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#0D7A6B] transition-colors"
                 />

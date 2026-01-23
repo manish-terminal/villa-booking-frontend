@@ -112,8 +112,9 @@ export default function AgentBookingSidebar({
             showToast("Booking created successfully!", "success");
 
             onSuccess();
-        } catch (err: any) {
-            showToast(err.error || "Failed to create booking", "error");
+        } catch (err: unknown) {
+            const apiError = err as { error?: string };
+            showToast(apiError.error || "Failed to create booking", "error");
         } finally {
             setLoading(false);
         }

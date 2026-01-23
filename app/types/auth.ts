@@ -65,7 +65,7 @@ export interface ValidateInviteCodeRequest {
 
 export interface ValidateInviteCodeResponse {
   valid: boolean;
-  inviteCode?: any; // Property details/invite code
+  inviteCode?: unknown; // Property details/invite code
   message?: string;
 }
 

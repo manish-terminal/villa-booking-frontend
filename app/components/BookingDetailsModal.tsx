@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { api } from "@/app/lib/api";
 import { getUser } from "@/app/lib/auth";
+import { APIError } from "@/app/types/auth";
 import { Booking, Payment, PaymentSummary, OfflinePaymentRequest } from "@/app/types/property";
 import { useToast } from "@/app/components/Toast";
 import Button from "@/app/components/Button";
@@ -40,7 +41,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
   const [paymentSummary, setPaymentSummary] = useState<PaymentSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
-  
+
   const [newPayment, setNewPayment] = useState<OfflinePaymentRequest>({
     amount: 0,
     method: "upi",
@@ -72,8 +73,9 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
       await api.updateBookingStatus(booking.id, newStatus);
       showToast(`Status: ${newStatus.replace("_", " ").toUpperCase()}`, "success");
       onUpdate();
-    } catch (err: any) {
-      showToast(err.error || "Status update failed", "error");
+    } catch (err: unknown) {
+      const apiError = err as APIError;
+      showToast(apiError.error || "Status update failed", "error");
     } finally {
       setLoading(false);
     }
@@ -94,8 +96,9 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
       showToast("Settled & Checked Out", "success");
       fetchPaymentInfo();
       onUpdate();
-    } catch (err: any) {
-      showToast(err.error || "Settlement failed", "error");
+    } catch (err: unknown) {
+      const apiError = err as APIError;
+      showToast(apiError.error || "Settlement failed", "error");
     } finally {
       setLoading(false);
     }
@@ -110,8 +113,9 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
       setShowPaymentForm(false);
       fetchPaymentInfo();
       onUpdate();
-    } catch (err: any) {
-      showToast(err.error || "Logging failed", "error");
+    } catch (err: unknown) {
+      const apiError = err as APIError;
+      showToast(apiError.error || "Logging failed", "error");
     } finally {
       setLoading(false);
     }
@@ -130,7 +134,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="relative w-full max-w-5xl max-h-[95vh] bg-[var(--background)] border border-[var(--glass-border)] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
-        
+
         {/* Visual Header Strip */}
         <div className="h-2 bg-gradient-to-r from-[var(--primary)] via-[var(--secondary)] to-[var(--primary)]" />
 
@@ -163,10 +167,10 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-1 lg:grid-cols-12">
-            
+
             {/* Left Column: Details & Ops */}
             <div className="lg:col-span-7 p-8 space-y-10 border-r border-[var(--glass-border)]">
-              
+
               {/* Timeline Info */}
               <div className="grid grid-cols-2 gap-4">
                 <TimelineCard label="Check-in" date={booking.checkIn} icon={<Calendar className="text-emerald-500" />} />
@@ -199,8 +203,8 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
 
               {/* Contacts & Notes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <ContactItem icon={<Phone size={16}/>} label="Phone Number" value={booking.guestPhone} />
-                <ContactItem icon={<Mail size={16}/>} label="Email Address" value={booking.guestEmail || "Not Provided"} />
+                <ContactItem icon={<Phone size={16} />} label="Phone Number" value={booking.guestPhone} />
+                <ContactItem icon={<Mail size={16} />} label="Email Address" value={booking.guestEmail || "Not Provided"} />
               </div>
 
               {booking.notes && (
@@ -209,23 +213,23 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
                     <FileText size={40} />
                   </div>
                   <label className="text-[10px] font-black text-[var(--foreground-muted)] uppercase tracking-widest block mb-3">Front-Desk Notes</label>
-                  <p className="text-sm font-medium leading-relaxed italic">"{booking.notes}"</p>
+                  <p className="text-sm font-medium leading-relaxed italic">&quot;{booking.notes}&quot;</p>
                 </section>
               )}
             </div>
 
             {/* Right Column: Ledger & Finance */}
             <div className="lg:col-span-5 p-8 bg-[var(--input-bg)]/20 space-y-8">
-              
+
               {/* Balance Hero Card */}
               <section className="space-y-4">
                 <div className="flex justify-between items-center">
-                   <h3 className="text-[10px] font-black text-[var(--foreground-muted)] uppercase tracking-widest">Financial Ledger</h3>
-                   {paymentSummary && (
-                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter text-white ${paymentSummary.status === 'completed' ? 'bg-emerald-500' : 'bg-orange-500'}`}>
-                        {paymentSummary.status}
-                      </span>
-                   )}
+                  <h3 className="text-[10px] font-black text-[var(--foreground-muted)] uppercase tracking-widest">Financial Ledger</h3>
+                  {paymentSummary && (
+                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter text-white ${paymentSummary.status === 'completed' ? 'bg-emerald-500' : 'bg-orange-500'}`}>
+                      {paymentSummary.status}
+                    </span>
+                  )}
                 </div>
 
                 <div className="bg-[var(--foreground)] text-[var(--background)] p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
@@ -289,30 +293,30 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
                   <form onSubmit={handleLogPayment} className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-3xl animate-in slide-in-from-top-4 duration-300 space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                         <label className="text-[8px] font-black text-emerald-600 uppercase tracking-widest ml-1">Manual Amount</label>
-                         <input
-                           type="number" required
-                           className="w-full bg-white border border-emerald-500/20 rounded-xl px-4 py-2 text-sm font-bold text-emerald-600 outline-none"
-                           value={newPayment.amount}
-                           onChange={e => setNewPayment({ ...newPayment, amount: parseInt(e.target.value) || 0 })}
-                         />
+                        <label className="text-[8px] font-black text-emerald-600 uppercase tracking-widest ml-1">Manual Amount</label>
+                        <input
+                          type="number" required
+                          className="w-full bg-white border border-emerald-500/20 rounded-xl px-4 py-2 text-sm font-bold text-emerald-600 outline-none"
+                          value={newPayment.amount}
+                          onChange={e => setNewPayment({ ...newPayment, amount: parseInt(e.target.value) || 0 })}
+                        />
                       </div>
                       <div className="space-y-1.5">
-                         <label className="text-[8px] font-black text-emerald-600 uppercase tracking-widest ml-1">Mode</label>
-                         <select
-                           className="w-full bg-white border border-emerald-500/20 rounded-xl px-4 py-2 text-sm font-bold outline-none"
-                           value={newPayment.method}
-                           onChange={e => setNewPayment({ ...newPayment, method: e.target.value })}
-                         >
-                           <option value="upi">UPI</option>
-                           <option value="cash">Cash</option>
-                           <option value="bank_transfer">Transfer</option>
-                         </select>
+                        <label className="text-[8px] font-black text-emerald-600 uppercase tracking-widest ml-1">Mode</label>
+                        <select
+                          className="w-full bg-white border border-emerald-500/20 rounded-xl px-4 py-2 text-sm font-bold outline-none"
+                          value={newPayment.method}
+                          onChange={e => setNewPayment({ ...newPayment, method: e.target.value })}
+                        >
+                          <option value="upi">UPI</option>
+                          <option value="cash">Cash</option>
+                          <option value="bank_transfer">Transfer</option>
+                        </select>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                       <button type="submit" disabled={loading} className="flex-1 py-3 bg-emerald-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest">Commit Entry</button>
-                       <button onClick={() => setShowPaymentForm(false)} className="px-4 py-3 bg-white text-rose-500 rounded-xl text-[9px] font-black uppercase tracking-widest">Cancel</button>
+                      <button type="submit" disabled={loading} className="flex-1 py-3 bg-emerald-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest">Commit Entry</button>
+                      <button onClick={() => setShowPaymentForm(false)} className="px-4 py-3 bg-white text-rose-500 rounded-xl text-[9px] font-black uppercase tracking-widest">Cancel</button>
                     </div>
                   </form>
                 )}
@@ -348,8 +352,8 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate }: Book
         {/* Modal Footer */}
         <footer className="px-8 py-6 bg-[var(--input-bg)]/30 border-t border-[var(--glass-border)] flex items-center justify-between">
           <div className="flex items-center gap-2 text-[var(--foreground-muted)] opacity-50">
-             <ShieldCheck size={14} />
-             <p className="text-[9px] font-bold uppercase tracking-widest">Audited: {format(new Date(), "PPpp")}</p>
+            <ShieldCheck size={14} />
+            <p className="text-[9px] font-bold uppercase tracking-widest">Audited: {format(new Date(), "PPpp")}</p>
           </div>
           <button
             onClick={onClose}

@@ -179,7 +179,7 @@ function AgentBookingsContent() {
                     </div>
                     <div className="space-y-2">
                         <h3 className="text-2xl font-black text-[var(--foreground)] uppercase">No Linked Properties</h3>
-                        <p className="text-[var(--foreground-muted)] max-w-sm mx-auto font-medium">Link a property from the "My Properties" section to start booking.</p>
+                        <p className="text-[var(--foreground-muted)] max-w-sm mx-auto font-medium">Link a property from the &quot;My Properties&quot; section to start booking.</p>
                     </div>
                     <Button onClick={() => window.location.href = "/agent/properties"}>Link Property Now</Button>
                 </div>

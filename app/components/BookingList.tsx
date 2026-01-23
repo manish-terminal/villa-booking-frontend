@@ -14,16 +14,18 @@ import {
     UserCheck,
     LogOut,
     ExternalLink,
-    Phone
+    Phone,
+    PencilLine
 } from "lucide-react";
 import { Booking } from "@/app/types/property";
 
 interface BookingListProps {
     bookings: Booking[];
     onSelectBooking: (booking: Booking) => void;
+    onEditBooking?: (booking: Booking) => void;
 }
 
-export default function BookingList({ bookings, onSelectBooking }: BookingListProps) {
+export default function BookingList({ bookings, onSelectBooking, onEditBooking }: BookingListProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
 
@@ -42,20 +44,15 @@ export default function BookingList({ bookings, onSelectBooking }: BookingListPr
     });
 
     const getStatusStyles = (status: string) => {
-        switch (status) {
-            case "confirmed":
-                return { icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10", label: "Confirmed" };
-            case "pending_confirmation":
-                return { icon: Clock, color: "text-orange-500", bg: "bg-orange-500/10", label: "Pending" };
-            case "checked_in":
-                return { icon: UserCheck, color: "text-[var(--primary)]", bg: "bg-[var(--primary)]/10", label: "Checked In" };
-            case "checked_out":
-                return { icon: LogOut, color: "text-[var(--primary)]", bg: "bg-[var(--primary)]/10", label: "Checked Out" };
-            case "cancelled":
-                return { icon: Ban, color: "text-rose-500", bg: "bg-rose-500/10", label: "Cancelled" };
-            default:
-                return { icon: Clock, color: "text-[var(--foreground-muted)]", bg: "bg-[var(--input-bg)]", label: status };
+        const s = status.toLowerCase();
+        if (s === 'settled' || s === 'confirmed' || s === 'completed' || s === 'checked_in' || s === 'checked_out') {
+            return { icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10", label: "Settled" };
+        } else if (s === 'partial') {
+            return { icon: ExternalLink, color: "text-blue-500", bg: "bg-blue-500/10", label: "Partial" };
+        } else if (s === 'pending' || s === 'pending_confirmation' || s === 'due') {
+            return { icon: Clock, color: "text-orange-500", bg: "bg-orange-500/10", label: "Pending" };
         }
+        return { icon: Clock, color: "text-[var(--foreground-muted)]", bg: "bg-[var(--input-bg)]", label: status.toUpperCase() };
     };
 
     return (
@@ -84,11 +81,9 @@ export default function BookingList({ bookings, onSelectBooking }: BookingListPr
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
                         <option value="all">All Statuses</option>
-                        <option value="pending_confirmation">Pending Orders</option>
-                        <option value="confirmed">Confirmed Stays</option>
-                        <option value="checked_in">Active Stays</option>
-                        <option value="checked_out">Past Choices</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="pending">Pending</option>
+                        <option value="partial">Partial</option>
+                        <option value="settled">Settled</option>
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--foreground-muted)]">
                         <ChevronRight size={16} className="rotate-90" />
@@ -187,8 +182,22 @@ export default function BookingList({ bookings, onSelectBooking }: BookingListPr
                                         <span className="text-[9px] font-black text-[var(--foreground-muted)] uppercase tracking-widest leading-none mb-1">Direct Rev</span>
                                         <span className="text-2xl font-serif text-[var(--primary)] tracking-tight">₹{booking.totalAmount.toLocaleString()}</span>
                                     </div>
-                                    <div className="w-10 h-10 rounded-full border border-[var(--glass-border)] flex items-center justify-center text-[var(--foreground-muted)] group-hover:bg-[var(--primary)] group-hover:text-white group-hover:border-transparent transition-all duration-300">
-                                        <ChevronRight size={20} />
+                                    <div className="flex items-center gap-2">
+                                        {onEditBooking && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEditBooking(booking);
+                                                }}
+                                                className="w-10 h-10 rounded-full border border-[var(--glass-border)] flex items-center justify-center text-[var(--foreground-muted)] hover:bg-[var(--primary)] hover:text-white hover:border-transparent transition-all duration-300"
+                                                title="Edit Booking"
+                                            >
+                                                <PencilLine size={18} />
+                                            </button>
+                                        )}
+                                        <div className="w-10 h-10 rounded-full border border-[var(--glass-border)] flex items-center justify-center text-[var(--foreground-muted)] group-hover:bg-[var(--primary)] group-hover:text-white group-hover:border-transparent transition-all duration-300">
+                                            <ChevronRight size={20} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

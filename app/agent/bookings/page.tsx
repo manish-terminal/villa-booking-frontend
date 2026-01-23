@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { format, addYears } from "date-fns";
 import { api } from "@/app/lib/api";
 import { Booking, Property, OccupiedRange } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
@@ -30,6 +31,7 @@ function AgentBookingsContent() {
     // Selection state for Calendar
     const [checkIn, setCheckIn] = useState<Date | null>(null);
     const [checkOut, setCheckOut] = useState<Date | null>(null);
+    const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
 
     // Fetch linked properties on mount
     useEffect(() => {
@@ -68,9 +70,11 @@ function AgentBookingsContent() {
         const fetchData = async () => {
             setCalendarLoading(true);
             try {
+                const startDateStr = format(new Date(), 'yyyy-MM-dd');
+                const endDateStr = format(addYears(new Date(), 1), 'yyyy-MM-dd');
                 const [bookingsRes, calendarRes] = await Promise.all([
-                    api.getBookings(selectedPropertyId),
-                    api.getPropertyCalendar(selectedPropertyId)
+                    api.getBookings(selectedPropertyId, startDateStr, endDateStr),
+                    api.getPropertyCalendar(selectedPropertyId, startDateStr, endDateStr)
                 ]);
                 setBookings(bookingsRes.bookings || []);
                 setOccupiedRanges(calendarRes.occupied || []);
@@ -91,9 +95,11 @@ function AgentBookingsContent() {
     const handleRefresh = async () => {
         if (!selectedPropertyId) return;
         try {
+            const startDateStr = format(new Date(), 'yyyy-MM-dd');
+            const endDateStr = format(addYears(new Date(), 1), 'yyyy-MM-dd');
             const [bookingsRes, calendarRes] = await Promise.all([
-                api.getBookings(selectedPropertyId),
-                api.getPropertyCalendar(selectedPropertyId)
+                api.getBookings(selectedPropertyId, startDateStr, endDateStr),
+                api.getPropertyCalendar(selectedPropertyId, startDateStr, endDateStr)
             ]);
             setBookings(bookingsRes.bookings || []);
             setOccupiedRanges(calendarRes.occupied || []);
@@ -168,6 +174,29 @@ function AgentBookingsContent() {
                 </div>
             </div>
 
+            {/* Editing Sidebar Overlay */}
+            {editingBooking && selectedProperty && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        onClick={() => setEditingBooking(null)}
+                    />
+                    <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto">
+                        <AgentBookingSidebar
+                            bookingToEdit={editingBooking}
+                            property={selectedProperty}
+                            checkIn={new Date(editingBooking.checkIn)}
+                            checkOut={new Date(editingBooking.checkOut)}
+                            onCancel={() => setEditingBooking(null)}
+                            onSuccess={() => {
+                                setEditingBooking(null);
+                                handleRefresh();
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
             {loading && !selectedPropertyId ? (
                 <div className="grid grid-cols-1 gap-6 animate-pulse">
                     <div className="h-64 glass-card bg-[var(--input-bg)]/50 rounded-[2rem] border-none shadow-none"></div>
@@ -194,6 +223,7 @@ function AgentBookingsContent() {
                             <BookingList
                                 bookings={filteredBookings}
                                 onSelectBooking={setSelectedBooking}
+                                onEditBooking={setEditingBooking}
                             />
                         </div>
                     ) : (
@@ -269,6 +299,10 @@ function AgentBookingsContent() {
                     booking={selectedBooking}
                     onClose={() => setSelectedBooking(null)}
                     onUpdate={handleRefresh}
+                    onEdit={(booking) => {
+                        setSelectedBooking(null);
+                        setEditingBooking(booking);
+                    }}
                 />
             )}
         </div>

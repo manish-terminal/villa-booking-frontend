@@ -6,12 +6,13 @@ import { Send, CheckCircle2, Coins } from "lucide-react";
 import Button from "@/app/components/Button";
 import { api } from "@/app/lib/api";
 import { useToast } from "@/app/components/Toast";
-import { CreateBookingRequest, Property } from "@/app/types/property";
+import { CreateBookingRequest, Property, Booking } from "@/app/types/property";
 
 interface AgentBookingSidebarProps {
     property: Property;
     checkIn: Date | null;
     checkOut: Date | null;
+    bookingToEdit?: Booking;
     onSuccess: () => void;
     onCancel: () => void;
 }
@@ -20,21 +21,22 @@ export default function AgentBookingSidebar({
     property,
     checkIn,
     checkOut,
+    bookingToEdit,
     onSuccess,
     onCancel,
 }: AgentBookingSidebarProps) {
     const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        guestName: "",
-        guestPhone: "",
-        guestEmail: "",
-        numGuests: 1,
-        notes: "",
-        specialRequests: "",
-        pricePerNight: property?.pricePerNight || 0,
-        totalAmount: 0,
-        agentCommission: 0,
+        guestName: bookingToEdit?.guestName || "",
+        guestPhone: bookingToEdit?.guestPhone || "",
+        guestEmail: bookingToEdit?.guestEmail || "",
+        numGuests: bookingToEdit?.numGuests || 1,
+        notes: bookingToEdit?.notes || "",
+        specialRequests: bookingToEdit?.specialRequests || "",
+        pricePerNight: bookingToEdit?.pricePerNight || property?.pricePerNight || 0,
+        totalAmount: bookingToEdit?.totalAmount || 0,
+        agentCommission: bookingToEdit?.agentCommission || 0,
         advancePayment: 0,
         paymentMethod: "upi",
     });
@@ -43,10 +45,10 @@ export default function AgentBookingSidebar({
 
     // Sync pricePerNight when property changes
     useEffect(() => {
-        if (property?.pricePerNight) {
+        if (property?.pricePerNight && !bookingToEdit) {
             setFormData(prev => ({ ...prev, pricePerNight: property.pricePerNight }));
         }
-    }, [property?.pricePerNight]);
+    }, [property?.pricePerNight, bookingToEdit]);
 
     // Effect to update total when price or nights changes
     useEffect(() => {
@@ -74,9 +76,8 @@ export default function AgentBookingSidebar({
                 return;
             }
 
-            // 2. Create booking with agent commission
-            const request: CreateBookingRequest = {
-                propertyId: property.id,
+            // 2. Prepare request
+            const request: Partial<CreateBookingRequest> = {
                 guestName: formData.guestName,
                 guestPhone: formData.guestPhone,
                 guestEmail: formData.guestEmail,
@@ -90,31 +91,50 @@ export default function AgentBookingSidebar({
                 agentCommission: formData.agentCommission,
             };
 
-            const bookingResponse = await api.createBooking(request);
-            const newBookingId = bookingResponse.id;
+            let targetBookingId = bookingToEdit?.id;
+
+            if (bookingToEdit) {
+                // Update mode
+                await api.updateBooking(bookingToEdit.id, {
+                    ...request,
+                    propertyId: property.id
+                } as any);
+                showToast("Booking updated successfully!", "success");
+            } else {
+                // Create mode
+                const bookingResponse = await api.createBooking({
+                    ...request,
+                    propertyId: property.id
+                } as CreateBookingRequest);
+                targetBookingId = bookingResponse.id;
+                showToast("Booking created successfully!", "success");
+            }
 
             // 3. Log advance payment if provided
-            if (formData.advancePayment > 0) {
+            if (formData.advancePayment > 0 && targetBookingId) {
                 try {
-                    await api.logPayment(newBookingId, {
+                    await api.logPayment(targetBookingId, {
                         amount: formData.advancePayment,
                         method: formData.paymentMethod,
                         reference: "Advance Payment",
                         paymentDate: format(new Date(), "yyyy-MM-dd"),
-                        notes: "Initial advance payment during booking creation",
+                        notes: bookingToEdit
+                            ? "Additional payment logged during booking update"
+                            : "Initial advance payment during booking creation",
                     });
+                    if (bookingToEdit) {
+                        showToast("Payment logged successfully!", "success");
+                    }
                 } catch (paymentErr) {
                     console.error("Failed to log advance payment:", paymentErr);
-                    showToast("Booking created, but failed to log advance payment.", "info");
+                    showToast("Booking saved, but failed to log payment.", "info");
                 }
             }
-
-            showToast("Booking created successfully!", "success");
 
             onSuccess();
         } catch (err: unknown) {
             const apiError = err as { error?: string };
-            showToast(apiError.error || "Failed to create booking", "error");
+            showToast(apiError.error || `Failed to ${bookingToEdit ? 'update' : 'create'} booking`, "error");
         } finally {
             setLoading(false);
         }
@@ -127,7 +147,7 @@ export default function AgentBookingSidebar({
             <div className="p-6 md:p-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h2 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">New Booking</h2>
+                        <h2 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">{bookingToEdit ? 'Edit Booking' : 'New Booking'}</h2>
                         <p className="text-[10px] font-black text-[var(--secondary)] uppercase tracking-widest mt-1">{property.name}</p>
                     </div>
                     <button
@@ -298,7 +318,7 @@ export default function AgentBookingSidebar({
                             className="h-14 !rounded-2xl"
                         >
                             <span className="flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest">
-                                Book Reservation
+                                {bookingToEdit ? 'Update Booking' : 'Book Reservation'}
                                 <Send size={20} />
                             </span>
                         </Button>

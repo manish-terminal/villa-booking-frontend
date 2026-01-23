@@ -71,7 +71,7 @@ export interface OccupiedRange {
     bookingId?: string; // ID to link to full booking details
     checkIn: string; // ISO string
     checkOut: string; // ISO string
-    status: "pending_confirmation" | "confirmed" | "checked_in" | "checked_out" | "cancelled" | "no_show";
+    status: "pending_confirmation" | "confirmed" | "checked_in" | "checked_out" | "cancelled" | "no_show" | "partial" | "settled";
     guestName?: string; // Only for owners/admins
 }
 
@@ -87,6 +87,7 @@ export interface AvailabilityResponse {
     checkIn: string;
     checkOut: string;
     available: boolean;
+    bookings?: Booking[];
 }
 
 export interface Booking {
@@ -106,7 +107,9 @@ export interface Booking {
     currency: string;
     status: string;
     bookedBy: string;
+    advanceMethod?: string;
     notes?: string;
+    specialRequests?: string;
     createdAt: string;
     updatedAt: string;
 }

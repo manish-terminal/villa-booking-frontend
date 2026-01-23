@@ -247,9 +247,24 @@ class ApiClient {
     }
 
     // Get booking by ID
-    async getBooking(id: string): Promise<Booking> {
-        return this.request<Booking>(`/bookings/${id}`, {
+    async getBooking(id: string, propertyId: string): Promise<Booking> {
+        return this.request<Booking>(`/bookings/${id}?propertyId=${propertyId}`, {
             method: "GET",
+        });
+    }
+
+    // Update booking
+    async updateBooking(id: string, data: Partial<CreateBookingRequest>): Promise<Booking> {
+        return this.request<Booking>(`/bookings/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify(data),
+        });
+    }
+
+    // Delete booking
+    async deleteBooking(id: string): Promise<{ message: string }> {
+        return this.request<{ message: string }>(`/bookings/${id}`, {
+            method: "DELETE",
         });
     }
 

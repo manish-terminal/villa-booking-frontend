@@ -5,12 +5,13 @@ import { format, differenceInDays } from "date-fns";
 import Button from "@/app/components/Button";
 import { api } from "@/app/lib/api";
 import { useToast } from "@/app/components/Toast";
-import { CreateBookingRequest, Property } from "@/app/types/property";
+import { CreateBookingRequest, Property, Booking } from "@/app/types/property";
 
 interface BookingSidebarProps {
     property: Property;
     checkIn: Date | null;
     checkOut: Date | null;
+    bookingToEdit?: Booking;
     onSuccess: () => void;
     onCancel: () => void;
 }
@@ -56,6 +57,7 @@ export default function BookingSidebar({
     property,
     checkIn,
     checkOut,
+    bookingToEdit,
     onSuccess,
     onCancel,
 }: BookingSidebarProps) {
@@ -63,16 +65,16 @@ export default function BookingSidebar({
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        guestName: "",
-        guestPhone: "",
-        guestEmail: "",
-        numGuests: 1,
-        notes: "",
-        specialRequests: "",
-        pricePerNight: property?.pricePerNight || 0,
-        totalAmount: 0,
-        agentCommission: 0,
-        advancePayment: 0,
+        guestName: bookingToEdit?.guestName || "",
+        guestPhone: bookingToEdit?.guestPhone || "",
+        guestEmail: bookingToEdit?.guestEmail || "",
+        numGuests: bookingToEdit?.numGuests || 1,
+        notes: bookingToEdit?.notes || "",
+        specialRequests: bookingToEdit?.specialRequests || "",
+        pricePerNight: bookingToEdit?.pricePerNight || property?.pricePerNight || 0,
+        totalAmount: bookingToEdit?.totalAmount || 0,
+        agentCommission: bookingToEdit?.agentCommission || 0,
+        advancePayment: 0, // Usually not updated during edit unless it's a new log
         paymentMethod: "upi",
     });
 
@@ -80,10 +82,10 @@ export default function BookingSidebar({
 
     // Sync pricePerNight when property changes
     useEffect(() => {
-        if (property?.pricePerNight) {
+        if (property?.pricePerNight && !bookingToEdit) {
             setFormData(prev => ({ ...prev, pricePerNight: property.pricePerNight }));
         }
-    }, [property?.pricePerNight]);
+    }, [property?.pricePerNight, bookingToEdit]);
 
     // Effect to update total when price or nights changes
     useEffect(() => {
@@ -139,14 +141,17 @@ export default function BookingSidebar({
             );
 
             if (!availability.available) {
-                showToast("These dates are no longer available.", "error");
-                setLoading(false);
-                return;
+                // If editing, exclude the current booking from availability check
+                const otherBookings = availability.bookings?.filter(b => b.id !== bookingToEdit?.id) || [];
+                if (otherBookings.length > 0) {
+                    showToast("These dates are no longer available.", "error");
+                    setLoading(false);
+                    return;
+                }
             }
 
-            // 2. Create booking
-            const request: CreateBookingRequest = {
-                propertyId: property.id,
+            // 2. Prepare request
+            const request: Partial<CreateBookingRequest> = {
                 guestName: formData.guestName,
                 guestPhone: formData.guestPhone,
                 guestEmail: formData.guestEmail,
@@ -160,30 +165,49 @@ export default function BookingSidebar({
                 agentCommission: formData.agentCommission,
             };
 
-            const bookingResponse = await api.createBooking(request);
-            const newBookingId = bookingResponse.id;
+            let targetBookingId = bookingToEdit?.id;
 
-            // 3. Log advance payment if provided
-            if (formData.advancePayment > 0) {
+            if (bookingToEdit) {
+                // Update mode
+                await api.updateBooking(bookingToEdit.id, {
+                    ...request,
+                    propertyId: property.id
+                } as any);
+                showToast("Booking updated successfully!", "success");
+            } else {
+                // Create mode
+                const bookingResponse = await api.createBooking({
+                    ...request,
+                    propertyId: property.id
+                } as CreateBookingRequest);
+                targetBookingId = bookingResponse.id;
+                showToast("Booking created successfully!", "success");
+            }
+
+            // 3. Log advance payment if provided (for both new and updated bookings)
+            if (formData.advancePayment > 0 && targetBookingId) {
                 try {
-                    await api.logPayment(newBookingId, {
+                    await api.logPayment(targetBookingId, {
                         amount: formData.advancePayment,
                         method: formData.paymentMethod,
                         reference: "Advance Payment",
                         paymentDate: format(new Date(), "yyyy-MM-dd"),
-                        notes: "Initial advance payment during booking creation",
+                        notes: bookingToEdit
+                            ? "Additional payment logged during booking update"
+                            : "Initial advance payment during booking creation",
                     });
+                    if (bookingToEdit) {
+                        showToast("Payment logged successfully!", "success");
+                    }
                 } catch (paymentErr) {
                     console.error("Failed to log advance payment:", paymentErr);
-                    showToast("Booking created, but failed to log advance payment.", "info");
+                    showToast("Booking saved, but failed to log payment.", "info");
                 }
             }
-
-            showToast("Booking created successfully!", "success");
             onSuccess();
         } catch (err: unknown) {
             const error = err as { error?: string };
-            showToast(error.error || "Failed to create booking", "error");
+            showToast(error.error || `Failed to ${bookingToEdit ? 'update' : 'create'} booking`, "error");
         } finally {
             setLoading(false);
         }
@@ -205,7 +229,7 @@ export default function BookingSidebar({
             <div className="bg-[#051325] text-white p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h2 className="text-xl font-black">New Booking</h2>
+                        <h2 className="text-xl font-black">{bookingToEdit ? 'Edit Booking' : 'New Booking'}</h2>
                         <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">{property.name}</p>
                     </div>
                     <button
@@ -471,11 +495,11 @@ export default function BookingSidebar({
                             {loading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    Creating...
+                                    {bookingToEdit ? 'Updating...' : 'Creating...'}
                                 </>
                             ) : (
                                 <>
-                                    Confirm Booking
+                                    {bookingToEdit ? 'Update Booking' : 'Confirm Booking'}
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>

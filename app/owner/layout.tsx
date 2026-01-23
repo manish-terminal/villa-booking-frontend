@@ -64,14 +64,15 @@ const navItems: NavItem[] = [
 export default function OwnerLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
-    const [user] = useState<User | null>(() => {
-        if (typeof window !== "undefined") return getUser();
-        return null;
-    });
+    const [user, setUser] = useState<User | null>(null);
+    const [mounted, setMounted] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const currentUser = getUser();
+        setUser(currentUser);
+
         if (!currentUser) {
             router.replace("/login");
         } else if (currentUser.role !== "owner" && currentUser.role !== "admin") {
@@ -83,7 +84,7 @@ export default function OwnerLayout({ children }: { children: ReactNode }) {
         logout();
     };
 
-    if (!user) {
+    if (!mounted || !user) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
                 <div className="spinner spinner-dark w-8 h-8" />

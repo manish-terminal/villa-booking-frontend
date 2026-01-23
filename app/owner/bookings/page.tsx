@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { format, addYears } from "date-fns";
 import { api } from "@/app/lib/api";
 import { Property, OccupiedRange, Booking } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
@@ -9,6 +10,7 @@ import { useToast } from "@/app/components/Toast";
 import Calendar from "@/app/components/Calendar";
 import BookingSidebar from "@/app/components/BookingSidebar";
 import BookingDetailsModal from "@/app/components/BookingDetailsModal";
+import BookingList from "@/app/components/BookingList";
 
 // Format currency
 const formatCurrency = (value: number, currency: string = "INR") => {
@@ -42,6 +44,7 @@ export default function BookingsPage() {
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
     const [showBookingModal, setShowBookingModal] = useState(false);
+    const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
 
     // Selection state for Calendar view
     const [checkIn, setCheckIn] = useState<Date | null>(null);
@@ -77,12 +80,16 @@ export default function BookingsPage() {
         const fetchData = async () => {
             setCalendarLoading(true);
             try {
+                const startDateStr = format(new Date(), 'yyyy-MM-dd');
+                const endDateStr = format(addYears(new Date(), 1), 'yyyy-MM-dd');
                 const [calRes, bookRes] = await Promise.all([
-                    api.getPropertyCalendar(selectedPropertyId),
-                    api.getBookings(selectedPropertyId)
+                    api.getPropertyCalendar(selectedPropertyId, startDateStr, endDateStr),
+                    api.getBookings(selectedPropertyId, startDateStr, endDateStr)
                 ]);
+                console.log("Raw Calendar Data:", calRes.occupied);
                 setOccupiedRanges(calRes.occupied || []);
                 const validBookings = (bookRes.bookings || []).filter((b: Booking) =>
+                    b.id && b.id !== "" &&
                     b.guestName && b.guestName.trim() !== '' &&
                     b.checkIn && new Date(b.checkIn).getFullYear() > 2000
                 );
@@ -109,12 +116,15 @@ export default function BookingsPage() {
     const refreshData = async () => {
         if (!selectedPropertyId) return;
         try {
+            const startDateStr = format(new Date(), 'yyyy-MM-dd');
+            const endDateStr = format(addYears(new Date(), 1), 'yyyy-MM-dd');
             const [calRes, bookRes] = await Promise.all([
-                api.getPropertyCalendar(selectedPropertyId),
-                api.getBookings(selectedPropertyId)
+                api.getPropertyCalendar(selectedPropertyId, startDateStr, endDateStr),
+                api.getBookings(selectedPropertyId, startDateStr, endDateStr)
             ]);
             setOccupiedRanges(calRes.occupied || []);
             const validBookings = (bookRes.bookings || []).filter((b: Booking) =>
+                b.id && b.id !== "" &&
                 b.guestName && b.guestName.trim() !== '' &&
                 b.checkIn && new Date(b.checkIn).getFullYear() > 2000
             );
@@ -136,12 +146,41 @@ export default function BookingsPage() {
 
     const getStatusStyle = (status: string) => {
         const statusLower = status.toLowerCase();
-        if (statusLower === 'completed' || statusLower === 'confirmed' || statusLower === 'settled') {
+        if (statusLower === 'settled' || statusLower === 'confirmed' || statusLower === 'completed' || statusLower === 'checked_in' || statusLower === 'checked_out') {
             return 'bg-emerald-50 text-emerald-700';
-        } else if (statusLower === 'partial' || statusLower === 'pending' || statusLower === 'pending_confirmation') {
+        } else if (statusLower === 'partial') {
+            return 'bg-blue-50 text-blue-700';
+        } else if (statusLower === 'pending' || statusLower === 'pending_confirmation' || statusLower === 'due') {
             return 'bg-amber-50 text-amber-700';
         }
         return 'bg-slate-50 text-slate-500';
+    };
+
+    const getStatusText = (status: string) => {
+        const statusLower = status.toLowerCase();
+        if (statusLower === 'settled' || statusLower === 'confirmed' || statusLower === 'completed' || statusLower === 'checked_in' || statusLower === 'checked_out') {
+            return 'SETTLED';
+        } else if (statusLower === 'partial') {
+            return 'PARTIAL';
+        } else if (statusLower === 'pending' || statusLower === 'pending_confirmation' || statusLower === 'due') {
+            return 'PENDING';
+        }
+        return status.toUpperCase();
+    };
+
+    const handleAvailabilityCheck = async (start: Date, end: Date) => {
+        if (!selectedPropertyId) return true;
+        try {
+            const res = await api.checkAvailability(
+                selectedPropertyId,
+                format(start, 'yyyy-MM-dd'),
+                format(end, 'yyyy-MM-dd')
+            );
+            return res.available;
+        } catch (err) {
+            console.error("Availability check failed", err);
+            return true; // Fallback to allowing selection if check fails
+        }
     };
 
     // Loading State
@@ -245,21 +284,58 @@ export default function BookingsPage() {
                 </div>
             </div>
 
+            {/* Editing Sidebar Overlay */}
+            {editingBooking && selectedProperty && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        onClick={() => setEditingBooking(null)}
+                    />
+                    <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto">
+                        <BookingSidebar
+                            bookingToEdit={editingBooking}
+                            property={selectedProperty}
+                            checkIn={new Date(editingBooking.checkIn)}
+                            checkOut={new Date(editingBooking.checkOut)}
+                            onCancel={() => setEditingBooking(null)}
+                            onSuccess={() => {
+                                setEditingBooking(null);
+                                refreshData();
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Content */}
             <div className="px-4">
                 {viewMode === 'calendar' ? (
                     <div className="space-y-6">
                         {/* Calendar */}
                         {calendarLoading ? (
-                            <div className="bg-white rounded-[2rem] border border-slate-100 p-6 h-80 animate-pulse"></div>
+                            <div className="bg-[#051325] rounded-[2.5rem] border border-white/5 p-6 h-[500px] animate-pulse"></div>
                         ) : (
-                            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                            <div className="rounded-[2.5rem] overflow-hidden">
                                 <Calendar
                                     occupiedRanges={occupiedRanges}
                                     onRangeSelect={handleRangeSelect}
+                                    onAvailabilityCheck={handleAvailabilityCheck}
                                     onBookingClick={(id) => {
+                                        if (!id) return;
+                                        console.log("Calendar click - Booking ID:", id);
                                         const booking = bookings.find(b => b.id === id);
-                                        if (booking) setSelectedBooking(booking);
+                                        if (booking) {
+                                            setSelectedBooking(booking);
+                                        } else {
+                                            console.warn("Booking not found in local state, trying to fetch...");
+                                            showToast("Opening booking details...", "success");
+                                            api.getBooking(id, selectedPropertyId).then((setOneBooking: Booking) => {
+                                                setSelectedBooking(setOneBooking);
+                                            }).catch((err: APIError) => {
+                                                console.error("Failed to fetch booking details", err);
+                                                showToast(err.error || "Could not open details", "error");
+                                            });
+                                        }
                                     }}
                                     selectedStart={checkIn}
                                     selectedEnd={checkOut}
@@ -295,47 +371,11 @@ export default function BookingsPage() {
                         </h3>
 
                         {bookings.length > 0 ? (
-                            bookings.map(booking => (
-                                <div
-                                    key={booking.id}
-                                    onClick={() => setSelectedBooking(booking)}
-                                    className="bg-white rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden pl-6 pr-6 py-6 cursor-pointer hover:shadow-md transition-all"
-                                >
-                                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#0D7A6B] rounded-l-[2rem]"></div>
-
-                                    <div className="flex justify-between items-start mb-1">
-                                        <div>
-                                            <h4 className="font-bold text-slate-900 text-lg leading-tight">
-                                                {booking.guestName}
-                                            </h4>
-                                            <p className="text-[14px] text-slate-400 font-medium mt-1">
-                                                {formatDate(booking.checkIn)} — {formatDate(booking.checkOut)}
-                                            </p>
-                                        </div>
-
-                                        <div className={`text-[10px] font-black px-3 py-1 rounded-full ${getStatusStyle(booking.status)}`}>
-                                            {booking.status.toUpperCase().replace('_', ' ')}
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-6 flex items-center justify-start gap-10 border-t border-slate-50 pt-5">
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total</span>
-                                            <span className="text-base font-black text-slate-900">
-                                                {formatCurrency(booking.totalAmount, booking.currency)}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nights</span>
-                                            <span className="text-base font-black text-[#0D7A6B]">{booking.numNights}</span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Guests</span>
-                                            <span className="text-base font-black text-[#0D7A6B]">{booking.numGuests}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
+                            <BookingList
+                                bookings={bookings}
+                                onSelectBooking={setSelectedBooking}
+                                onEditBooking={setEditingBooking}
+                            />
                         ) : (
                             <div className="bg-white p-12 rounded-[2rem] border border-slate-50 flex flex-col items-center justify-center text-slate-300">
                                 <svg className="w-16 h-16 mb-3 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -386,6 +426,10 @@ export default function BookingsPage() {
                     booking={selectedBooking}
                     onClose={() => setSelectedBooking(null)}
                     onUpdate={refreshData}
+                    onEdit={(booking) => {
+                        setSelectedBooking(null);
+                        setEditingBooking(booking);
+                    }}
                 />
             )}
         </div>

@@ -46,11 +46,15 @@ export default function AgentLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    const [mounted, setMounted] = useState(false);
+    // Initialize mounted state synchronously to avoid cascading renders
+    const [mounted, setMounted] = useState(() => {
+        if (typeof window !== 'undefined') return true;
+        return false;
+    });
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        if (!mounted) setMounted(true);
         const currentUser = getUser();
         setUser(currentUser);
 
@@ -59,6 +63,7 @@ export default function AgentLayout({ children }: { children: ReactNode }) {
         } else if (currentUser.role !== "agent" && currentUser.role !== "admin") {
             router.replace("/owner/dashboard");
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     const handleLogout = () => {

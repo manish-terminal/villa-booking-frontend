@@ -319,7 +319,6 @@ export default function BookingsPage() {
                                 <Calendar
                                     occupiedRanges={occupiedRanges}
                                     onRangeSelect={handleRangeSelect}
-                                    onAvailabilityCheck={handleAvailabilityCheck}
                                     onBookingClick={(id) => {
                                         if (!id) return;
                                         console.log("Calendar click - Booking ID:", id);

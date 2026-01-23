@@ -63,7 +63,7 @@ export default function Calendar({
         const occupied = getOccupiedStatus(day);
         if (occupied) {
             // Priority 1: Open details if we have an ID
-            const bId = occupied.bookingId || (occupied as any).id;
+            const bId = occupied.bookingId || ('id' in occupied ? (occupied as { id?: string }).id : undefined);
             if (bId && isOwner && onBookingClick) {
                 onBookingClick(bId);
             }

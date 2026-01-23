@@ -172,7 +172,7 @@ export default function BookingSidebar({
                 await api.updateBooking(bookingToEdit.id, {
                     ...request,
                     propertyId: property.id
-                } as any);
+                } as Parameters<typeof api.updateBooking>[1]);
                 showToast("Booking updated successfully!", "success");
             } else {
                 // Create mode

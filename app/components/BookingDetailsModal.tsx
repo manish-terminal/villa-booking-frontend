@@ -1,34 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import {
   X,
   Calendar,
-  Users,
-  FileText,
-  CreditCard,
   Plus,
-  CheckCircle2,
-  Clock,
-  UserCheck,
-  LogOut,
-  Ban,
-  ExternalLink,
   Phone,
   Mail,
   ReceiptIndianRupee,
-  ShieldCheck,
   History,
   PencilLine,
   Trash2
 } from "lucide-react";
 import { api } from "@/app/lib/api";
-import { getUser } from "@/app/lib/auth";
+import { isValidDisplayValue } from "@/app/lib/utils";
 import { APIError } from "@/app/types/auth";
-import { Booking, Payment, PaymentSummary, OfflinePaymentRequest } from "@/app/types/property";
+import { Booking, PaymentSummary, OfflinePaymentRequest } from "@/app/types/property";
 import { useToast } from "@/app/components/Toast";
-import Button from "@/app/components/Button";
 
 interface BookingDetailsModalProps {
   booking: Booking;
@@ -39,8 +28,7 @@ interface BookingDetailsModalProps {
 
 export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit }: BookingDetailsModalProps) {
   const { showToast } = useToast();
-  const [user] = useState(() => getUser());
-  const [payments, setPayments] = useState<Payment[]>([]);
+  // Removed unused user state
   const [paymentSummary, setPaymentSummary] = useState<PaymentSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
@@ -53,55 +41,20 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
     paymentDate: format(new Date(), "yyyy-MM-dd"),
   });
 
-  useEffect(() => {
-    fetchPaymentInfo();
-  }, [booking.id]);
-
-  const fetchPaymentInfo = async () => {
+  const fetchPaymentInfo = useCallback(async () => {
     try {
       const sRes = await api.getBookingPaymentStatus(booking.id);
       setPaymentSummary(sRes);
     } catch (err) {
       console.error("Failed to fetch payment info", err);
     }
-  };
+  }, [booking.id]);
 
-  const handleStatusUpdate = async (newStatus: string) => {
-    setLoading(true);
-    try {
-      await api.updateBookingStatus(booking.id, newStatus);
-      showToast(`Status: ${newStatus.replace("_", " ").toUpperCase()}`, "success");
-      onUpdate();
-    } catch (err: unknown) {
-      const apiError = err as APIError;
-      showToast(apiError.error || "Status update failed", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchPaymentInfo();
+  }, [fetchPaymentInfo]);
 
-  const handleSettle = async () => {
-    if (!paymentSummary || paymentSummary.totalDue <= 0) return;
-    setLoading(true);
-    try {
-      await api.logPayment(booking.id, {
-        amount: paymentSummary.totalDue,
-        method: "cash",
-        reference: "Balance Settlement",
-        paymentDate: format(new Date(), "yyyy-MM-dd"),
-        notes: "Quick settlement of full remaining balance",
-      });
-      await api.updateBookingStatus(booking.id, "checked_out");
-      showToast("Settled & Checked Out", "success");
-      fetchPaymentInfo();
-      onUpdate();
-    } catch (err: unknown) {
-      const apiError = err as APIError;
-      showToast(apiError.error || "Settlement failed", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Removed unused handleStatusUpdate and handleSettle functions
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to permanently delete this booking? This action cannot be undone.")) {
@@ -185,10 +138,12 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
             <div className="space-y-2">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-white font-black text-2xl shadow-xl">
-                  {booking.guestName.charAt(0)}
+                  {(isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest").charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A] tracking-tight leading-none mb-2">{booking.guestName}</h2>
+                  <h2 className="text-3xl font-black text-[#0F172A] tracking-tight leading-none mb-2">
+                    {isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest"}
+                  </h2>
                   <div className="flex items-center gap-2">
                     <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-white shadow-sm ${getStatusStyleSimplified(booking.status)}`}>
                       {getStatusTextSimplified(booking.status)}
@@ -212,8 +167,12 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
 
           {/* Masked Contact Items */}
           <div className="grid grid-cols-1 gap-4">
-            <ContactItem icon={<Phone size={18} className="text-sky-600" />} label="Phone Number" value={booking.guestPhone} />
-            <ContactItem icon={<Mail size={18} className="text-indigo-600" />} label="Email Address" value={booking.guestEmail || "Not Provided"} />
+            {isValidDisplayValue(booking.guestPhone) && (
+              <ContactItem icon={<Phone size={18} className="text-sky-600" />} label="Phone Number" value={booking.guestPhone} />
+            )}
+            {isValidDisplayValue(booking.guestEmail) && (
+              <ContactItem icon={<Mail size={18} className="text-indigo-600" />} label="Email Address" value={booking.guestEmail} />
+            )}
           </div>
 
           {/* Financials Breakdown */}
@@ -251,7 +210,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
           <section className="grid grid-cols-2 gap-4">
             <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
               <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-1">Agent/Staff</p>
-              <p className="text-xs font-black text-slate-700">{booking.bookedBy || "Direct Booking"}</p>
+              <p className="text-xs font-black text-slate-700">{booking.bookedByName || "Direct Booking"}</p>
             </div>
             <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
               <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-1">Advance Method</p>

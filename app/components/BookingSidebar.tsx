@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { format, differenceInDays } from "date-fns";
-import Button from "@/app/components/Button";
 import { api } from "@/app/lib/api";
 import { useToast } from "@/app/components/Toast";
 import { CreateBookingRequest, Property, Booking } from "@/app/types/property";
@@ -17,7 +16,7 @@ interface BookingSidebarProps {
 }
 
 // Step indicator component
-function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+function StepIndicator({ currentStep }: { currentStep: number; totalSteps: number }) {
     const steps = ["Guest Info", "Pricing", "Confirm"];
     return (
         <div className="flex items-center justify-between mb-6">
@@ -184,8 +183,6 @@ export default function BookingSidebar({
                 }
             }
 
-            let targetBookingId = bookingToEdit?.id;
-
             if (bookingToEdit) {
                 // Update mode
                 await api.updateBooking(bookingToEdit.id, {
@@ -195,11 +192,10 @@ export default function BookingSidebar({
                 showToast("Booking updated successfully!", "success");
             } else {
                 // Create mode
-                const bookingResponse = await api.createBooking({
+                await api.createBooking({
                     ...request,
                     propertyId: property.id
                 } as CreateBookingRequest);
-                targetBookingId = bookingResponse.id;
                 showToast("Booking created successfully!", "success");
             }
 

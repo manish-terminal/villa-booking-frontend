@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/app/lib/api";
 import { Property } from "@/app/types/property";
@@ -82,7 +82,7 @@ export default function AgentProperties() {
     const [loading, setLoading] = useState(true);
     const [linkModalOpen, setLinkModalOpen] = useState(false);
 
-    const fetchLinkedProperties = async () => {
+    const fetchLinkedProperties = useCallback(async () => {
         setLoading(true);
         try {
             const response = await api.getProperties();
@@ -93,11 +93,11 @@ export default function AgentProperties() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [showToast]);
 
     useEffect(() => {
         fetchLinkedProperties();
-    }, []);
+    }, [fetchLinkedProperties]);
 
     const handlePropertyClick = (propertyId: string) => {
         // Redirection for calendar-only booking
@@ -135,6 +135,7 @@ export default function AgentProperties() {
                         >
                             <div className="h-56 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 relative overflow-hidden">
                                 {prop.images && prop.images.length > 0 ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
                                     <img
                                         src={prop.images[0]}
                                         alt={prop.name}

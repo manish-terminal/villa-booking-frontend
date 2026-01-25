@@ -7,17 +7,14 @@ import {
     Filter,
     ChevronRight,
     Calendar,
-    User,
     Clock,
     CheckCircle2,
-    Ban,
-    UserCheck,
-    LogOut,
     ExternalLink,
     Phone,
     PencilLine
 } from "lucide-react";
 import { Booking } from "@/app/types/property";
+import { isValidDisplayValue } from "../lib/utils";
 import { BookingWithPayment } from "./BookingCard";
 
 interface BookingListProps {
@@ -130,17 +127,19 @@ export default function BookingList({ bookings, onSelectBooking, onEditBooking }
                                     {/* Guest Identity */}
                                     <div className="flex items-start gap-4">
                                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--input-bg)] to-[var(--input-bg)]/50 text-[var(--primary)] flex items-center justify-center font-serif text-3xl shadow-lg shadow-[var(--primary)]/5 group-hover:scale-105 transition-transform duration-500 relative overflow-hidden">
-                                            <span className="relative z-10">{booking.guestName.charAt(0)}</span>
+                                            <span className="relative z-10">{(isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest").charAt(0)}</span>
                                             <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </div>
                                         <div className="flex-1 min-w-0 pt-1">
                                             <h4 className="text-2xl font-serif text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors leading-tight">
-                                                {booking.guestName}
+                                                {isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest"}
                                             </h4>
-                                            <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest mt-1 flex items-center gap-2">
-                                                <Phone size={10} className="text-[var(--secondary)]" />
-                                                {booking.guestPhone}
-                                            </p>
+                                            {isValidDisplayValue(booking.guestPhone) && (
+                                                <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest mt-1 flex items-center gap-2">
+                                                    <Phone size={10} className="text-[var(--secondary)]" />
+                                                    {booking.guestPhone}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 

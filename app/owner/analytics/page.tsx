@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
     BarChart,
     Bar,
@@ -12,7 +12,6 @@ import {
     Cell,
 } from "recharts";
 import { api } from "@/app/lib/api";
-import { getUser } from "@/app/lib/auth";
 import { OwnerAnalytics } from "@/app/types/analytics";
 import { APIError } from "@/app/types/auth";
 
@@ -89,11 +88,7 @@ export default function OwnerAnalyticsPage() {
         });
     };
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, [dateRange]);
-
-    const fetchAnalytics = async () => {
+    const fetchAnalytics = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -108,7 +103,11 @@ export default function OwnerAnalyticsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [dateRange]);
+
+    useEffect(() => {
+        fetchAnalytics();
+    }, [fetchAnalytics]);
 
     // Prepare chart data
     const data = analytics?.propertyStats.map(v => ({
@@ -140,8 +139,8 @@ export default function OwnerAnalyticsPage() {
                             key={period.id}
                             onClick={() => handlePeriodChange(period.id)}
                             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedPeriod === period.id
-                                    ? "bg-[#0D7A6B] text-white shadow-md"
-                                    : "bg-white border border-slate-200 text-slate-600 hover:border-[#0D7A6B]"
+                                ? "bg-[#0D7A6B] text-white shadow-md"
+                                : "bg-white border border-slate-200 text-slate-600 hover:border-[#0D7A6B]"
                                 }`}
                         >
                             {period.label}
@@ -213,7 +212,7 @@ export default function OwnerAnalyticsPage() {
                             </div>
                             <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Collected</p>
                             <h4 className="text-xl font-black text-slate-900">{formatCurrency(analytics.totalCollected, analytics.currency)}</h4>
-                     
+
                         </div>
                         <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-sm">
                             <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mb-3">
@@ -223,7 +222,7 @@ export default function OwnerAnalyticsPage() {
                             </div>
                             <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Pending</p>
                             <h4 className="text-xl font-black text-slate-900">{formatCurrency(analytics.totalPending, analytics.currency)}</h4>
-                     
+
                         </div>
                     </div>
 

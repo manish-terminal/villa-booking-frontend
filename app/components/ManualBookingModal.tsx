@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { X, User, Phone, Mail, Users, FileText, Send, Calendar as CalendarIcon, CreditCard } from "lucide-react";
+import { X, Send, CreditCard } from "lucide-react";
 import Button from "@/app/components/Button";
 import { api } from "@/app/lib/api";
 import { useToast } from "@/app/components/Toast";

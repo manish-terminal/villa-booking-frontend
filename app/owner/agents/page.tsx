@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { X, User, Phone, Mail, Users, FileText, Send, Calendar as CalendarIcon, CreditCard, Plus, ChevronDown, Copy } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+
+import { Plus, ChevronDown, Copy } from "lucide-react";
 import { api } from "@/app/lib/api";
 import { Property, InviteCode } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
@@ -303,7 +303,7 @@ export default function AgentCodesPage() {
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
-    const fetchProperties = async () => {
+    const fetchProperties = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -316,11 +316,11 @@ export default function AgentCodesPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [showToast]);
 
     useEffect(() => {
         fetchProperties();
-    }, []);
+    }, [fetchProperties]);
 
     const handleGenerateCode = (property: Property) => {
         setSelectedProperty(property);

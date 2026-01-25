@@ -12,21 +12,7 @@ import BookingSidebar from "@/app/components/BookingSidebar";
 import BookingDetailsModal from "@/app/components/BookingDetailsModal";
 import BookingList from "@/app/components/BookingList";
 
-// Format currency
-const formatCurrency = (value: number, currency: string = "INR") => {
-    const validCurrency = currency && currency.length === 3 ? currency : "INR";
-    return new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: validCurrency,
-        maximumFractionDigits: 0,
-    }).format(value);
-};
 
-// Format date
-const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
 
 export default function BookingsPage() {
     const { showToast } = useToast();
@@ -104,7 +90,7 @@ export default function BookingsPage() {
             }
         };
         fetchData();
-    }, [selectedPropertyId]);
+    }, [selectedPropertyId, showToast]);
 
     // Show booking modal when dates are selected
     useEffect(() => {
@@ -144,44 +130,7 @@ export default function BookingsPage() {
         setCheckOut(end);
     };
 
-    const getStatusStyle = (status: string) => {
-        const statusLower = status.toLowerCase();
-        if (statusLower === 'settled' || statusLower === 'confirmed' || statusLower === 'completed' || statusLower === 'checked_in' || statusLower === 'checked_out') {
-            return 'bg-emerald-50 text-emerald-700';
-        } else if (statusLower === 'partial') {
-            return 'bg-blue-50 text-blue-700';
-        } else if (statusLower === 'pending' || statusLower === 'pending_confirmation' || statusLower === 'due') {
-            return 'bg-amber-50 text-amber-700';
-        }
-        return 'bg-slate-50 text-slate-500';
-    };
 
-    const getStatusText = (status: string) => {
-        const statusLower = status.toLowerCase();
-        if (statusLower === 'settled' || statusLower === 'confirmed' || statusLower === 'completed' || statusLower === 'checked_in' || statusLower === 'checked_out') {
-            return 'SETTLED';
-        } else if (statusLower === 'partial') {
-            return 'PARTIAL';
-        } else if (statusLower === 'pending' || statusLower === 'pending_confirmation' || statusLower === 'due') {
-            return 'PENDING';
-        }
-        return status.toUpperCase();
-    };
-
-    const handleAvailabilityCheck = async (start: Date, end: Date) => {
-        if (!selectedPropertyId) return true;
-        try {
-            const res = await api.checkAvailability(
-                selectedPropertyId,
-                format(start, 'yyyy-MM-dd'),
-                format(end, 'yyyy-MM-dd')
-            );
-            return res.available;
-        } catch (err) {
-            console.error("Availability check failed", err);
-            return true; // Fallback to allowing selection if check fails
-        }
-    };
 
     // Loading State
     if (loading) {

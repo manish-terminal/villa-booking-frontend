@@ -106,7 +106,8 @@ export interface Booking {
     agentCommission: number;
     currency: string;
     status: string;
-    bookedBy: string;
+    bookedBy: string; // Agent Phone
+    bookedByName?: string; // Agent Name
     advanceMethod?: string;
     notes?: string;
     specialRequests?: string;

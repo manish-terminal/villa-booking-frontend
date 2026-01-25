@@ -34,7 +34,7 @@ export default function LoginPage() {
     const [passwordError, setPasswordError] = useState<string | undefined>();
 
     // User check state
-    const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
+
     const [showPasswordOption, setShowPasswordOption] = useState(false);
 
     // Load remembered phone
@@ -66,7 +66,7 @@ export default function LoginPage() {
         try {
             // Check if user exists
             const status = await api.checkUser(phone);
-            setUserStatus(status);
+
 
             if (!status.exists) {
                 // New user - send OTP and go to registration
@@ -146,7 +146,7 @@ export default function LoginPage() {
     // Go back to phone input
     const handleBack = () => {
         setShowPasswordOption(false);
-        setUserStatus(null);
+
         setPassword("");
         setPasswordError(undefined);
     };

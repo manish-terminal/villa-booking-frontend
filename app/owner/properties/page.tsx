@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/app/lib/api";
 import { Property, CreatePropertyRequest } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
@@ -50,6 +50,7 @@ function PropertyCard({ property, onEdit }: { property: Property; onEdit: (p: Pr
       <div className="relative">
         <div className="h-32 bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center overflow-hidden">
           {property.images?.[0] ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={property.images[0]}
               alt={property.name}
@@ -183,7 +184,11 @@ function PropertyModal({ isOpen, onClose, property, onSave }: { isOpen: boolean;
     if (!validate()) return;
     setLoading(true);
     try {
-      property ? await api.updateProperty(property.id, formData) : await api.createProperty(formData);
+      if (property) {
+        await api.updateProperty(property.id, formData);
+      } else {
+        await api.createProperty(formData);
+      }
       showToast(`Property ${property ? "updated" : "created"}!`, "success");
       onSave();
       onClose();
@@ -376,7 +381,7 @@ export default function PropertiesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
 
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -389,9 +394,9 @@ export default function PropertiesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  useEffect(() => { fetchProperties(); }, []);
+  useEffect(() => { fetchProperties(); }, [fetchProperties]);
 
   const handleAddNew = () => { setEditingProperty(null); setModalOpen(true); };
   const handleEdit = (p: Property) => { setEditingProperty(p); setModalOpen(true); };

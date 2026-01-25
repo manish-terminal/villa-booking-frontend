@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import SummaryCards from '@/app/components/SummaryCards';
 import { api } from '@/app/lib/api';
 import { OwnerAnalytics } from '@/app/types/analytics';
-import { Booking, PaymentSummary, Property } from '@/app/types/property';
+import { Booking, Property } from '@/app/types/property';
 import { APIError } from '@/app/types/auth';
 import BookingSidebar from '@/app/components/BookingSidebar';
 import BookingDetailsModal from '@/app/components/BookingDetailsModal';
@@ -71,7 +71,7 @@ const OwnerHomePage: React.FC = () => {
                     try {
                         const paymentSummary = await api.getBookingPaymentStatus(booking.id);
                         return { ...booking, paymentSummary };
-                    } catch (err) {
+                    } catch {
                         return booking;
                     }
                 })
@@ -83,7 +83,7 @@ const OwnerHomePage: React.FC = () => {
                     try {
                         const paymentSummary = await api.getBookingPaymentStatus(booking.id);
                         return { ...booking, paymentSummary };
-                    } catch (err) {
+                    } catch {
                         return booking;
                     }
                 })
@@ -123,7 +123,7 @@ const OwnerHomePage: React.FC = () => {
                     try {
                         const paymentSummary = await api.getBookingPaymentStatus(booking.id);
                         return { ...booking, paymentSummary };
-                    } catch (err) {
+                    } catch {
                         return booking;
                     }
                 })

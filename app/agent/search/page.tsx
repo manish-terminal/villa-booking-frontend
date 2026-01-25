@@ -6,7 +6,6 @@ import { format, addDays } from "date-fns";
 import { api } from "@/app/lib/api";
 import { Property } from "@/app/types/property";
 import { useToast } from "@/app/components/Toast";
-import Button from "@/app/components/Button";
 import { Calendar, Search, MapPin, Users, BedDouble, Bath, ArrowRight, Loader2 } from "lucide-react";
 
 export default function AgentSearch() {

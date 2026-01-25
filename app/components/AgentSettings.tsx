@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { api } from "@/app/lib/api";
 import { Agent, APIError } from "@/app/types/auth";
@@ -160,7 +160,7 @@ export default function AgentSettings() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchAgents = async () => {
+    const fetchAgents = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -173,11 +173,11 @@ export default function AgentSettings() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [showToast]);
 
     useEffect(() => {
         fetchAgents();
-    }, []);
+    }, [fetchAgents]);
 
     const handleStatusChange = async (phone: string, active: boolean) => {
         try {

@@ -21,7 +21,7 @@ const getLocalISO = (date: Date) => {
 
 export default function AgentAnalyticsPage() {
     const { showToast } = useToast();
-    const [user] = useState(() => getUser());
+
 
     // Default date boundaries
     const today = new Date();

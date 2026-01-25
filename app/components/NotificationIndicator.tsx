@@ -49,7 +49,7 @@ export default function NotificationIndicator() {
             await api.markNotificationAsRead(id);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
-        } catch (err) {
+        } catch {
             showToast("Failed to mark notification as read", "error");
         }
     };
@@ -59,7 +59,7 @@ export default function NotificationIndicator() {
             await api.markAllNotificationsAsRead();
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
-        } catch (err) {
+        } catch {
             showToast("Failed to mark all notifications as read", "error");
         }
     };

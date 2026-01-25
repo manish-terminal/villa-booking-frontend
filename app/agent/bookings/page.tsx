@@ -71,7 +71,7 @@ function AgentBookingsContent() {
             }
         };
         fetchProperties();
-    }, [searchParams]);
+    }, [searchParams, showToast]);
 
     // Fetch bookings and calendar data when selected property changes
     useEffect(() => {
@@ -112,7 +112,7 @@ function AgentBookingsContent() {
             }
         };
         fetchData();
-    }, [selectedPropertyId]);
+    }, [selectedPropertyId, showToast]);
 
     const handleRefresh = async () => {
         if (!selectedPropertyId) return;

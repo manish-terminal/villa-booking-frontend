@@ -13,13 +13,12 @@ import {
     isSameMonth,
     isSameDay,
     isToday,
-    addDays,
     isBefore,
     isAfter,
     parseISO,
     startOfDay,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { OccupiedRange } from "@/app/types/property";
 
 interface CalendarProps {
@@ -40,10 +39,7 @@ export default function Calendar({
     onBookingClick,
     selectedStart,
     selectedEnd,
-    pricePerNight,
-    currency,
     isOwner = false,
-    hideLegend = false,
 }: CalendarProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -112,9 +108,7 @@ export default function Calendar({
         );
     };
 
-    const getStatusColor = (status: string) => {
-        return "bg-emerald-500 text-white";
-    };
+
 
     return (
         <div className="glass-card overflow-hidden shadow-2xl">
@@ -189,7 +183,7 @@ export default function Calendar({
                                 <div
                                     className={`
                                         absolute inset-x-2 bottom-3 h-1.5 rounded-full shadow-sm pointer-events-none
-                                        ${getStatusColor(occupied.status).replace('text-white', '')}
+                                        bg-emerald-500
                                     `}
                                 />
                             )}

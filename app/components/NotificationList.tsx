@@ -2,7 +2,7 @@
 
 import { Notification } from "@/app/types/notification";
 import { format } from "date-fns";
-import { Bell, Check, ExternalLink, Info, CheckCircle, Calendar, CreditCard, AlertTriangle } from "lucide-react";
+import { Bell, Check, ExternalLink, Info, Calendar, CreditCard, AlertTriangle } from "lucide-react";
 
 interface NotificationListProps {
     notifications: Notification[];

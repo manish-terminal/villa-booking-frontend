@@ -68,6 +68,8 @@ export default function AgentBookingSidebar({
         guestName: bookingToEdit?.guestName || "",
         guestPhone: bookingToEdit?.guestPhone || "",
         guestEmail: bookingToEdit?.guestEmail || "",
+        checkInTime: bookingToEdit?.checkInTime || "14:00",
+        checkOutTime: bookingToEdit?.checkOutTime || "11:00",
         numGuests: bookingToEdit?.numGuests || 1,
         notes: bookingToEdit?.notes || "",
         specialRequests: bookingToEdit?.specialRequests || "",
@@ -157,7 +159,9 @@ export default function AgentBookingSidebar({
                 guestEmail: formData.guestEmail,
                 numGuests: formData.numGuests,
                 checkIn: format(checkIn, "yyyy-MM-dd"),
+                checkInTime: formData.checkInTime,
                 checkOut: format(checkOut, "yyyy-MM-dd"),
+                checkOutTime: formData.checkOutTime,
                 notes: formData.notes,
                 specialRequests: formData.specialRequests,
                 pricePerNight: formData.pricePerNight,
@@ -275,6 +279,26 @@ export default function AgentBookingSidebar({
                                 value={formData.guestName}
                                 onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
                             />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Check-in Time</label>
+                                    <input
+                                        type="time"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#0D7A6B] transition-colors"
+                                        value={formData.checkInTime}
+                                        onChange={(e) => setFormData({ ...formData, checkInTime: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Check-out Time</label>
+                                    <input
+                                        type="time"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#0D7A6B] transition-colors"
+                                        value={formData.checkOutTime}
+                                        onChange={(e) => setFormData({ ...formData, checkOutTime: e.target.value })}
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">

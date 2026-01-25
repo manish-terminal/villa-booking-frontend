@@ -5,18 +5,19 @@ import { format } from "date-fns";
 import {
   X,
   Calendar,
-  Plus,
+
   Phone,
   Mail,
   ReceiptIndianRupee,
   History,
   PencilLine,
-  Trash2
+  Trash2,
+  Check
 } from "lucide-react";
 import { api } from "@/app/lib/api";
 import { isValidDisplayValue } from "@/app/lib/utils";
 import { APIError } from "@/app/types/auth";
-import { Booking, PaymentSummary, OfflinePaymentRequest } from "@/app/types/property";
+import { Booking, PaymentSummary } from "@/app/types/property";
 import { useToast } from "@/app/components/Toast";
 
 interface BookingDetailsModalProps {
@@ -31,15 +32,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
   // Removed unused user state
   const [paymentSummary, setPaymentSummary] = useState<PaymentSummary | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
 
-  const [newPayment, setNewPayment] = useState<OfflinePaymentRequest>({
-    amount: 0,
-    method: "upi",
-    reference: "",
-    notes: "",
-    paymentDate: format(new Date(), "yyyy-MM-dd"),
-  });
 
   const fetchPaymentInfo = useCallback(async () => {
     try {
@@ -75,18 +68,19 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
     }
   };
 
-  const handleLogPayment = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSettle = async () => {
+    if (!window.confirm("Are you sure you want to mark this booking as fully paid?")) {
+      return;
+    }
     setLoading(true);
     try {
-      await api.logPayment(booking.id, newPayment);
-      showToast("Transaction Logged", "success");
-      setShowPaymentForm(false);
+      await api.settleBooking(booking.id);
+      showToast("Booking settled successfully", "success");
       fetchPaymentInfo();
       onUpdate();
     } catch (err: unknown) {
       const apiError = err as APIError;
-      showToast(apiError.error || "Logging failed", "error");
+      showToast(apiError.error || "Failed to settle booking", "error");
     } finally {
       setLoading(false);
     }
@@ -145,8 +139,8 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
                     {isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest"}
                   </h2>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-white shadow-sm ${getStatusStyleSimplified(booking.status)}`}>
-                      {getStatusTextSimplified(booking.status)}
+                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-white shadow-sm ${getStatusStyleSimplified(paymentSummary?.status || booking.status)}`}>
+                      {getStatusTextSimplified(paymentSummary?.status || booking.status)}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">REF #{booking.id.slice(-8)}</span>
                   </div>
@@ -161,8 +155,18 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
 
           {/* Guest Context Cards */}
           <div className="grid grid-cols-2 gap-4">
-            <TimelineCard label="Check-in" date={booking.checkIn} icon={<Calendar size={18} className="text-emerald-600" />} />
-            <TimelineCard label="Check-out" date={booking.checkOut} icon={<Calendar size={18} className="text-rose-600" />} />
+            <TimelineCard
+              label="Check-in"
+              date={booking.checkIn}
+              time={booking.checkInTime}
+              icon={<Calendar size={18} className="text-emerald-600" />}
+            />
+            <TimelineCard
+              label="Check-out"
+              date={booking.checkOut}
+              time={booking.checkOutTime}
+              icon={<Calendar size={18} className="text-rose-600" />}
+            />
           </div>
 
           {/* Masked Contact Items */}
@@ -218,58 +222,23 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
             </div>
           </section>
 
-          {/* Transaction History Section */}
-          <section className="space-y-6 pb-12">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <History size={20} className="text-indigo-600" />
-                <h3 className="text-xs font-black text-[#0F172A] uppercase tracking-[0.2em]">Transactions</h3>
-              </div>
+          {/* Settle Action */}
+          <section className="pb-12">
+            {(paymentSummary?.totalDue ?? 0) > 0 ? (
               <button
-                onClick={() => setShowPaymentForm(!showPaymentForm)}
-                className="w-10 h-10 rounded-xl bg-white text-slate-900 flex items-center justify-center hover:bg-slate-50 transition-all border border-slate-200 active:scale-90 shadow-sm"
+                onClick={handleSettle}
+                disabled={loading}
+                className="w-full py-4 bg-[#0F172A] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:shadow-slate-900/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <Plus size={20} />
+                <ReceiptIndianRupee size={16} />
+                {loading ? "Processing..." : `Settle Outstanding ₹${(paymentSummary?.totalDue ?? 0).toLocaleString()}`}
               </button>
-            </div>
-
-            {showPaymentForm && (
-              <form onSubmit={handleLogPayment} className="p-8 bg-white border border-slate-200 rounded-3xl animate-in slide-in-from-top-4 duration-300 shadow-xl space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Amount</label>
-                    <input
-                      type="number" required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-slate-900 outline-none focus:border-indigo-500 focus:bg-white transition-all"
-                      value={newPayment.amount}
-                      onChange={e => setNewPayment({ ...newPayment, amount: parseInt(e.target.value) || 0 })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mode</label>
-                    <select
-                      className="w-full h-[46px] bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500 focus:bg-white transition-all cursor-pointer"
-                      value={newPayment.method}
-                      onChange={e => setNewPayment({ ...newPayment, method: e.target.value })}
-                    >
-                      <option value="upi">UPI</option>
-                      <option value="cash">Cash</option>
-                      <option value="bank_transfer">Transfer</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <button type="submit" disabled={loading} className="flex-1 h-12 bg-[#0F172A] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-900/20 active:scale-95 transition-all">Submit Entry</button>
-                  <button onClick={() => setShowPaymentForm(false)} className="px-6 h-12 bg-white text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-200 hover:bg-slate-50 transition-all">Cancel</button>
-                </div>
-              </form>
-            )}
-
-            <div className="space-y-3">
-              <div className="space-y-3">
-                {/* Transaction history list unavailable as per configuration */}
+            ) : (
+              <div className="w-full py-4 bg-emerald-50 text-emerald-600 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 border border-emerald-100">
+                <Check size={16} />
+                Payment Settled
               </div>
-            </div>
+            )}
           </section>
         </div>
       </div>
@@ -278,7 +247,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
 }
 
 // Support components remain outside for cleanliness
-function TimelineCard({ label, date, icon }: { label: string; date: string; icon: React.ReactNode }) {
+function TimelineCard({ label, date, time, icon }: { label: string; date: string; time?: string; icon: React.ReactNode }) {
   return (
     <div className="p-6 bg-white border border-slate-100 rounded-[2rem] flex items-center gap-5 group hover:border-slate-200 hover:shadow-sm transition-all shadow-sm">
       <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-600 group-hover:scale-110 group-hover:bg-white transition-all">
@@ -287,6 +256,7 @@ function TimelineCard({ label, date, icon }: { label: string; date: string; icon
       <div>
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{label}</p>
         <p className="text-xs font-black text-[#0F172A]">{format(new Date(date), "EEE, MMM dd")}</p>
+        {time && <p className="text-[10px] font-bold text-slate-500 mt-0.5">{time}</p>}
       </div>
     </div>
   );

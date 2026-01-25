@@ -285,6 +285,13 @@ class ApiClient {
         });
     }
 
+    // Settle booking
+    async settleBooking(id: string): Promise<{ message: string; id: string; status: string }> {
+        return this.request<{ message: string; id: string; status: string }>(`/bookings/${id}/settle`, {
+            method: "POST",
+        });
+    }
+
     // --- Payment Management ---
 
     // Log offline payment

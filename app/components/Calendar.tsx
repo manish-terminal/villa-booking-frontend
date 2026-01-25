@@ -67,8 +67,8 @@ export default function Calendar({
             return;
         }
 
-        // Only block new date selection for past dates
-        if (isBefore(day, startOfDay(new Date()))) return;
+        // Allow selection of past dates
+        // if (isBefore(day, startOfDay(new Date()))) return;
 
         if (!selectedStart || (selectedStart && selectedEnd)) {
             onRangeSelect(day, null);
@@ -163,7 +163,7 @@ export default function Calendar({
                             className={`
                                 relative h-24 sm:h-32 border-r border-b border-[var(--glass-border)] cursor-pointer transition-all duration-200
                                 ${!isCurrentMonth ? "opacity-30" : "hover:bg-indigo-500/5"}
-                                ${isPast && !occupied ? "cursor-not-allowed bg-gray-100/10 grayscale" : ""}
+                                ${isPast && !occupied ? "" : ""}
                                 ${occupied ? "bg-white/5" : ""}
                                 ${inRange ? "bg-indigo-500/10" : ""}
                                 ${idx % 7 === 6 ? "border-r-0" : ""}

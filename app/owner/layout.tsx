@@ -110,7 +110,7 @@ export default function OwnerLayout({ children }: { children: ReactNode }) {
     return (
         <div className="min-h-screen bg-[var(--background)]">
             {/* Mobile Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-16 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--glass-border)] px-4 flex items-center justify-between">
+            <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-16 bg-white border-b border-slate-200 px-4 flex items-center justify-between">
                 <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                     className="p-2 text-[var(--foreground)]"
@@ -135,11 +135,11 @@ export default function OwnerLayout({ children }: { children: ReactNode }) {
 
             {/* Sidebar */}
             <aside
-                className={`fixed top-0 left-0 z-50 h-full w-64 bg-[var(--glass-bg)] backdrop-blur-xl border-r border-[var(--glass-border)] transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+                className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
                     }`}
             >
                 {/* Logo */}
-                <div className="h-16 flex items-center px-6 border-b border-[var(--glass-border)]">
+                <div className="h-16 flex items-center px-6 border-b border-slate-200">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center mr-3 shadow-lg shadow-[var(--primary)]/10">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -170,7 +170,7 @@ export default function OwnerLayout({ children }: { children: ReactNode }) {
                 </nav>
 
                 {/* User Section */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[var(--glass-border)]">
+                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200">
                     <div className="flex items-center gap-3 mb-3 px-2">
                         <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold shadow-md">
                             {user.name?.charAt(0).toUpperCase() || "U"}
@@ -195,7 +195,7 @@ export default function OwnerLayout({ children }: { children: ReactNode }) {
             {/* Main Content */}
             <main className="lg:ml-64 pt-16 lg:pt-0 min-h-screen">
                 {/* Desktop Header */}
-                <header className="hidden lg:flex sticky top-0 z-30 h-16 bg-white/50 backdrop-blur-xl border-b border-slate-100 px-8 items-center justify-end">
+                <header className="hidden lg:flex sticky top-0 z-30 h-16 bg-white border-b border-slate-100 px-8 items-center justify-end">
                     <NotificationIndicator />
                 </header>
                 <div className="p-4 lg:p-8">{children}</div>

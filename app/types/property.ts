@@ -99,7 +99,9 @@ export interface Booking {
     guestEmail: string;
     numGuests: number;
     checkIn: string;
+    checkInTime?: string;
     checkOut: string;
+    checkOutTime?: string;
     numNights: number;
     pricePerNight: number;
     totalAmount: number;
@@ -122,7 +124,9 @@ export interface CreateBookingRequest {
     guestEmail: string;
     numGuests: number;
     checkIn: string;
+    checkInTime?: string;
     checkOut: string;
+    checkOutTime?: string;
     notes?: string;
     specialRequests?: string;
     inviteCode?: string;

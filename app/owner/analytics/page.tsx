@@ -11,9 +11,17 @@ import {
     ResponsiveContainer,
     Cell,
 } from "recharts";
+import { Calendar } from "lucide-react";
 import { api } from "@/app/lib/api";
 import { OwnerAnalytics } from "@/app/types/analytics";
 import { APIError } from "@/app/types/auth";
+
+// --- Date Helpers ---
+const getLocalISO = (date: Date) => {
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+    return localDate.toISOString().split('T')[0];
+};
 
 // Custom colors for the bar chart
 const COLORS = ['#0D7A6B', '#051325', '#10B981', '#3B82F6'];
@@ -45,48 +53,13 @@ export default function OwnerAnalyticsPage() {
     const [analytics, setAnalytics] = useState<OwnerAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedPeriod, setSelectedPeriod] = useState<string>("this_month");
-    const [dateRange, setDateRange] = useState({
-        startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-            .toISOString()
-            .split("T")[0],
-        endDate: new Date().toISOString().split("T")[0],
-    });
 
-    // Period options
-    const periods = [
-        { id: "this_month", label: "This Month" },
-        { id: "last_month", label: "Last Month" },
-        { id: "last_3_months", label: "Last 3 Months" },
-        { id: "all_time", label: "All Time" },
-    ];
+    // Default date boundaries
+    const today = new Date();
+    const firstDay = getLocalISO(new Date(today.getFullYear(), today.getMonth(), 1));
+    const lastDay = getLocalISO(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
-    // Update date range when period changes
-    const handlePeriodChange = (periodId: string) => {
-        setSelectedPeriod(periodId);
-        const today = new Date();
-        let startDate = new Date();
-
-        switch (periodId) {
-            case "this_month":
-                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                break;
-            case "last_month":
-                startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                break;
-            case "last_3_months":
-                startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
-                break;
-            case "all_time":
-                startDate = new Date(2020, 0, 1); // From 2020
-                break;
-        }
-
-        setDateRange({
-            startDate: startDate.toISOString().split("T")[0],
-            endDate: today.toISOString().split("T")[0],
-        });
-    };
+    const [dateRange, setDateRange] = useState({ startDate: firstDay, endDate: lastDay });
 
     const fetchAnalytics = useCallback(async () => {
         setLoading(true);
@@ -132,20 +105,32 @@ export default function OwnerAnalyticsPage() {
                     </div>
                 </div>
 
-                {/* Period Selector */}
-                <div className="flex flex-wrap gap-2">
-                    {periods.map((period) => (
-                        <button
-                            key={period.id}
-                            onClick={() => handlePeriodChange(period.id)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedPeriod === period.id
-                                ? "bg-[#0D7A6B] text-white shadow-md"
-                                : "bg-white border border-slate-200 text-slate-600 hover:border-[#0D7A6B]"
-                                }`}
-                        >
-                            {period.label}
-                        </button>
-                    ))}
+                {/* Calendar Input */}
+                <div className="flex items-center gap-2 mt-4">
+                    <div className="flex items-center gap-2 p-2 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                        <div className="flex items-center px-3 gap-2">
+                            <Calendar size={14} className="text-slate-400" />
+                            <input
+                                type="month"
+                                value={dateRange.startDate.slice(0, 7)}
+                                onChange={(e) => {
+                                    if (!e.target.value) return;
+                                    const [y, m] = e.target.value.split('-').map(Number);
+                                    const start = getLocalISO(new Date(y, m - 1, 1));
+                                    const end = getLocalISO(new Date(y, m, 0));
+                                    // Removed the currentEndDate logic to match simply setting the whole month range
+                                    // as usually expected in monthly analytics, or keep consistent with agent analytics logic?
+                                    // Agent analytics logic:
+                                    // const currentEndDate = new Date() < new Date(y, m, 0) ? getLocalISO(new Date()) : end;
+                                    // Actually, let's keep it simple: whole month. The backend should handle future dates effectively (empty data).
+                                    // But to be exactly like Agent Analytics:
+                                    const currentEndDate = new Date() < new Date(y, m, 0) ? getLocalISO(new Date()) : end;
+                                    setDateRange({ startDate: start, endDate: currentEndDate });
+                                }}
+                                className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none cursor-pointer min-w-[100px]"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 

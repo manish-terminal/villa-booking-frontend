@@ -17,9 +17,10 @@ export default function AdminLayout({
         if (!user || user.role !== "admin") {
             router.push("/login");
         } else {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setAuthorized(true);
         }
-    }, []);
+    }, [router]);
 
     if (!authorized) {
         return null;

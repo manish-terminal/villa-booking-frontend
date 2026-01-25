@@ -16,12 +16,7 @@ import {
 } from "@/app/lib/auth";
 import { APIError } from "@/app/types/auth";
 
-type UserStatus = {
-    exists: boolean;
-    hasPassword?: boolean;
-    role?: "admin" | "owner" | "agent";
-    status?: "pending" | "approved" | "rejected";
-};
+
 
 export default function LoginPage() {
     const router = useRouter();

@@ -22,7 +22,7 @@ export default function AdminDashboard() {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             showToast("Export downloaded successfully", "success");
-        } catch (err) {
+        } catch {
             showToast("Failed to download export", "error");
         } finally {
             setExporting(false);

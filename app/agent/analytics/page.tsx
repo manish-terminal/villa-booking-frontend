@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/app/lib/api";
-import { getUser } from "@/app/lib/auth";
 import { AgentAnalytics, PropertyPerformance } from "@/app/types/analytics";
 import { APIError } from "@/app/types/auth";
 import { useToast } from "@/app/components/Toast";

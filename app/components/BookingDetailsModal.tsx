@@ -9,7 +9,6 @@ import {
   Phone,
   Mail,
   ReceiptIndianRupee,
-  History,
   PencilLine,
   Trash2,
   Check

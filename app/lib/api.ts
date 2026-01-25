@@ -11,7 +11,7 @@ import {
     AgentsListResponse,
     UpdateAgentStatusResponse,
 } from "@/app/types/auth";
-import { OwnerAnalytics, AgentAnalytics, DashboardStats, PropertyPerformance } from "@/app/types/analytics";
+import { OwnerAnalytics, AgentAnalytics, DashboardStats, PropertyPerformance, AdminDashboardResponse } from "@/app/types/analytics";
 import { Property, CreatePropertyRequest, PropertiesListResponse, InviteCode, PropertyCalendarResponse, AvailabilityResponse, CreateBookingRequest, Booking, BookingsListResponse, Payment, OfflinePaymentRequest, PaymentSummary, PaymentListResponse } from "@/app/types/property";
 import { NotificationsResponse, UnreadCountResponse } from "@/app/types/notification";
 
@@ -361,6 +361,39 @@ class ApiClient {
         return this.request<DashboardStats>("/analytics/dashboard", {
             method: "GET",
         });
+    }
+
+    // Get admin dashboard
+    async getAdminDashboard(): Promise<AdminDashboardResponse> {
+        return this.request<AdminDashboardResponse>("/analytics/admin/dashboard", {
+            method: "GET",
+        });
+    }
+
+    // Export analytics as CSV
+    async exportAnalytics(): Promise<Blob> {
+        const url = `${this.baseUrl}/analytics/export`;
+        const headers: Record<string, string> = {};
+
+        const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers,
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw {
+                error: data.error || "Failed to download export",
+                statusCode: response.status
+            };
+        }
+
+        return await response.blob();
     }
 
     // --- Notifications ---

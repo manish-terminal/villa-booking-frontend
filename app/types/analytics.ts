@@ -78,3 +78,32 @@ export interface AnalyticsFilters {
     startDate?: string;
     endDate?: string;
 }
+
+export interface GlobalStats {
+    totalGMV: number;
+    activeProperties: number;
+    activeAgents: number;
+    totalBookings: number;
+    totalUsers: number;
+}
+
+export interface TopProperty {
+    propertyId: string;
+    propertyName: string;
+    ownerName: string;
+    totalRevenue: number;
+    bookingCount: number;
+}
+
+export interface TopAgent {
+    agentName: string;
+    agentPhone: string;
+    totalSales: number;
+    bookingCount: number;
+}
+
+export interface AdminDashboardResponse {
+    globalStats: GlobalStats;
+    topProperties: TopProperty[];
+    topAgents: TopAgent[];
+}

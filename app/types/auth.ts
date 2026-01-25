@@ -83,3 +83,24 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 }
+
+// Agent Management Types
+export interface Agent {
+  phone: string;
+  name: string;
+  role: "agent";
+  status: "pending" | "approved" | "rejected";
+  managedProperties: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AgentsListResponse {
+  agents: Agent[];
+  count: number;
+}
+
+export interface UpdateAgentStatusResponse {
+  agent: Agent;
+  message: string;
+}

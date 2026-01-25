@@ -165,6 +165,25 @@ export default function BookingSidebar({
                 agentCommission: formData.agentCommission,
             };
 
+            // Add advance payment info if present
+            if (formData.advancePayment > 0) {
+                request.advanceAmount = formData.advancePayment;
+                request.advanceMethod = formData.paymentMethod;
+
+                // For updates, we might want to flag this is an additional payment
+                // The user explicitly requested this note format in the payload example
+                if (bookingToEdit && !formData.notes) {
+                    request.notes = "Additional payment logged during booking update";
+                } else if (bookingToEdit && formData.notes) {
+                    // Append if notes already exist? 
+                    // Or just let the backend handle it? 
+                    // Im going to stick to just sending the fields. The 'notes' in the user example 
+                    // likely referred to the fact that they saw that string in the logPayment call 
+                    // and wanted to show me 'this is the kind of data involved'.
+                    // I will leave request.notes as formData.notes (user editable booking notes).
+                }
+            }
+
             let targetBookingId = bookingToEdit?.id;
 
             if (bookingToEdit) {
@@ -184,26 +203,7 @@ export default function BookingSidebar({
                 showToast("Booking created successfully!", "success");
             }
 
-            // 3. Log advance payment if provided (for both new and updated bookings)
-            if (formData.advancePayment > 0 && targetBookingId) {
-                try {
-                    await api.logPayment(targetBookingId, {
-                        amount: formData.advancePayment,
-                        method: formData.paymentMethod,
-                        reference: "Advance Payment",
-                        paymentDate: format(new Date(), "yyyy-MM-dd"),
-                        notes: bookingToEdit
-                            ? "Additional payment logged during booking update"
-                            : "Initial advance payment during booking creation",
-                    });
-                    if (bookingToEdit) {
-                        showToast("Payment logged successfully!", "success");
-                    }
-                } catch (paymentErr) {
-                    console.error("Failed to log advance payment:", paymentErr);
-                    showToast("Booking saved, but failed to log payment.", "info");
-                }
-            }
+            // Successfully processed
             onSuccess();
         } catch (err: unknown) {
             const error = err as { error?: string };

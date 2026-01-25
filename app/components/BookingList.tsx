@@ -18,9 +18,10 @@ import {
     PencilLine
 } from "lucide-react";
 import { Booking } from "@/app/types/property";
+import { BookingWithPayment } from "./BookingCard";
 
 interface BookingListProps {
-    bookings: Booking[];
+    bookings: BookingWithPayment[];
     onSelectBooking: (booking: Booking) => void;
     onEditBooking?: (booking: Booking) => void;
 }
@@ -103,7 +104,8 @@ export default function BookingList({ bookings, onSelectBooking, onEditBooking }
                     </div>
                 ) : (
                     filteredBookings.map((booking) => {
-                        const status = getStatusStyles(booking.status);
+                        const displayStatus = booking.paymentSummary?.status || booking.status;
+                        const status = getStatusStyles(displayStatus);
                         return (
                             <div
                                 key={booking.id}

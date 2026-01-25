@@ -113,13 +113,7 @@ export default function Calendar({
     };
 
     const getStatusColor = (status: string) => {
-        const s = status.toLowerCase();
-        if (s === 'settled' || s === 'confirmed' || s === 'completed' || s === 'checked_in' || s === 'checked_out') {
-            return "bg-emerald-500 text-white";
-        } else if (s === 'partial') {
-            return "bg-blue-500 text-white";
-        }
-        return "bg-amber-500 text-white";
+        return "bg-emerald-500 text-white";
     };
 
     return (
@@ -215,28 +209,6 @@ export default function Calendar({
                     );
                 })}
             </div>
-
-            {/* Legend */}
-            {!hideLegend && (
-                <div className="p-4 bg-[var(--input-bg)]/30 border-t border-[var(--glass-border)] flex flex-wrap items-center gap-6 text-xs font-semibold">
-                    <div className="flex items-center gap-2">
-                        <div className="w-6 h-1.5 rounded-full bg-emerald-500" />
-                        <span className="text-[var(--foreground-muted)]">Settled</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-6 h-1.5 rounded-full bg-blue-500" />
-                        <span className="text-[var(--foreground-muted)]">Partial</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-6 h-1.5 rounded-full bg-amber-500" />
-                        <span className="text-[var(--foreground-muted)]">Pending</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-6 h-1.5 rounded-full bg-indigo-500" />
-                        <span className="text-[var(--foreground-muted)]">Selected</span>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

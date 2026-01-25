@@ -128,6 +128,8 @@ export interface CreateBookingRequest {
     pricePerNight?: number;
     totalAmount?: number;
     agentCommission?: number;
+    advanceAmount?: number;
+    advanceMethod?: string;
 }
 
 export interface BookingsListResponse {
@@ -163,8 +165,9 @@ export interface PaymentSummary {
     totalPaid: number;
     totalDue: number;
     status: "pending" | "partial" | "completed" | "due";
-    paymentCount: number;
+    paymentCount?: number;
     currency: string;
+    lastUpdated: string;
     lastPaymentDate?: string;
 }
 

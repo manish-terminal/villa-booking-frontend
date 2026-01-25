@@ -8,8 +8,10 @@ import {
     ValidateInviteCodeRequest,
     ValidateInviteCodeResponse,
     APIError,
+    AgentsListResponse,
+    UpdateAgentStatusResponse,
 } from "@/app/types/auth";
-import { OwnerAnalytics, AgentAnalytics, DashboardStats } from "@/app/types/analytics";
+import { OwnerAnalytics, AgentAnalytics, DashboardStats, PropertyPerformance } from "@/app/types/analytics";
 import { Property, CreatePropertyRequest, PropertiesListResponse, InviteCode, PropertyCalendarResponse, AvailabilityResponse, CreateBookingRequest, Booking, BookingsListResponse, Payment, OfflinePaymentRequest, PaymentSummary, PaymentListResponse } from "@/app/types/property";
 import { NotificationsResponse, UnreadCountResponse } from "@/app/types/notification";
 
@@ -207,6 +209,13 @@ class ApiClient {
         });
     }
 
+    // Find available properties
+    async findAvailableProperties(checkIn: string, checkOut: string): Promise<{ properties: Property[] }> {
+        return this.request<{ properties: Property[] }>(`/properties/available?checkIn=${checkIn}&checkOut=${checkOut}`, {
+            method: "GET",
+        });
+    }
+
     // --- Booking Management ---
 
     // Get property calendar
@@ -317,6 +326,21 @@ class ApiClient {
         });
     }
 
+    // Get agent property performance
+    async getAgentPropertyPerformance(
+        startDate?: string,
+        endDate?: string
+    ): Promise<{ data: PropertyPerformance[] }> {
+        const params = new URLSearchParams();
+        if (startDate) params.append("startDate", startDate);
+        if (endDate) params.append("endDate", endDate);
+
+        const query = params.toString() ? `?${params.toString()}` : "";
+        return this.request<{ data: PropertyPerformance[] }>(`/analytics/agent/property-performance${query}`, {
+            method: "GET",
+        });
+    }
+
     // Get agent analytics
     async getAgentAnalytics(
         startDate?: string,
@@ -370,6 +394,23 @@ class ApiClient {
     async markAllNotificationsAsRead(): Promise<{ message: string; count: number }> {
         return this.request<{ message: string; count: number }>("/notifications/mark-all-read", {
             method: "POST",
+        });
+    }
+
+    // --- Agent Management ---
+
+    // Get agents linked to owner's properties
+    async getAgents(): Promise<AgentsListResponse> {
+        return this.request<AgentsListResponse>("/agents", {
+            method: "GET",
+        });
+    }
+
+    // Update agent status (activate/deactivate)
+    async updateAgentStatus(phone: string, active: boolean): Promise<UpdateAgentStatusResponse> {
+        return this.request<UpdateAgentStatusResponse>(`/agents/${encodeURIComponent(phone)}/status`, {
+            method: "PATCH",
+            body: JSON.stringify({ active }),
         });
     }
 }

@@ -12,6 +12,7 @@ import BookingList from "@/app/components/BookingList";
 import Calendar from "@/app/components/Calendar";
 import BookingDetailsModal from "@/app/components/BookingDetailsModal";
 import AgentBookingSidebar from "@/app/components/AgentBookingSidebar";
+import { BookingWithPayment } from "@/app/components/BookingCard";
 import Button from "@/app/components/Button";
 import { Calendar as CalendarIcon, List, Search, RefreshCw } from "lucide-react";
 
@@ -21,7 +22,7 @@ function AgentBookingsContent() {
     const [user] = useState(() => getUser());
     const [properties, setProperties] = useState<Property[]>([]);
     const [selectedPropertyId, setSelectedPropertyId] = useState<string>("");
-    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [bookings, setBookings] = useState<BookingWithPayment[]>([]);
     const [occupiedRanges, setOccupiedRanges] = useState<OccupiedRange[]>([]);
     const [loading, setLoading] = useState(true);
     const [calendarLoading, setCalendarLoading] = useState(false);
@@ -43,6 +44,9 @@ function AgentBookingsContent() {
                 // Handle deep-linking from search params
                 const propId = searchParams.get("propertyId");
                 const view = searchParams.get("view");
+                const action = searchParams.get("action");
+                const checkInParam = searchParams.get("checkIn");
+                const checkOutParam = searchParams.get("checkOut");
 
                 if (propId) {
                     setSelectedPropertyId(propId);
@@ -52,6 +56,12 @@ function AgentBookingsContent() {
 
                 if (view === "calendar" || view === "list") {
                     setViewMode(view);
+                }
+
+                // Auto-open booking modal if action=book
+                if (action === "book" && checkInParam && checkOutParam) {
+                    setCheckIn(new Date(checkInParam));
+                    setCheckOut(new Date(checkOutParam));
                 }
             } catch (err) {
                 const apiError = err as APIError;
@@ -76,7 +86,19 @@ function AgentBookingsContent() {
                     api.getBookings(selectedPropertyId, startDateStr, endDateStr),
                     api.getPropertyCalendar(selectedPropertyId, startDateStr, endDateStr)
                 ]);
-                setBookings(bookingsRes.bookings || []);
+
+                // Enrich with payment status
+                const rawBookings = bookingsRes.bookings || [];
+                const enrichedBookings = await Promise.all(rawBookings.map(async (b) => {
+                    try {
+                        const paymentSummary = await api.getBookingPaymentStatus(b.id);
+                        return { ...b, paymentSummary };
+                    } catch {
+                        return b;
+                    }
+                }));
+
+                setBookings(enrichedBookings);
                 setOccupiedRanges(calendarRes.occupied || []);
 
                 // Reset selection when property changes
@@ -101,7 +123,18 @@ function AgentBookingsContent() {
                 api.getBookings(selectedPropertyId, startDateStr, endDateStr),
                 api.getPropertyCalendar(selectedPropertyId, startDateStr, endDateStr)
             ]);
-            setBookings(bookingsRes.bookings || []);
+
+            const rawBookings = bookingsRes.bookings || [];
+            const enrichedBookings = await Promise.all(rawBookings.map(async (b) => {
+                try {
+                    const paymentSummary = await api.getBookingPaymentStatus(b.id);
+                    return { ...b, paymentSummary };
+                } catch {
+                    return b;
+                }
+            }));
+
+            setBookings(enrichedBookings);
             setOccupiedRanges(calendarRes.occupied || []);
 
             if (selectedBooking) {
@@ -134,7 +167,7 @@ function AgentBookingsContent() {
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                     {/* View Toggle */}
-                    <div className="bg-[var(--input-bg)] p-1 rounded-2xl flex items-center shadow-inner border border-[var(--glass-border)] invisible md:visible">
+                    <div className="bg-[var(--input-bg)] p-1 rounded-2xl flex items-center shadow-inner border border-[var(--glass-border)]">
                         <button
                             onClick={() => setViewMode("list")}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${viewMode === "list"
@@ -174,29 +207,6 @@ function AgentBookingsContent() {
                 </div>
             </div>
 
-            {/* Editing Sidebar Overlay */}
-            {editingBooking && selectedProperty && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                        onClick={() => setEditingBooking(null)}
-                    />
-                    <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto">
-                        <AgentBookingSidebar
-                            bookingToEdit={editingBooking}
-                            property={selectedProperty}
-                            checkIn={new Date(editingBooking.checkIn)}
-                            checkOut={new Date(editingBooking.checkOut)}
-                            onCancel={() => setEditingBooking(null)}
-                            onSuccess={() => {
-                                setEditingBooking(null);
-                                handleRefresh();
-                            }}
-                        />
-                    </div>
-                </div>
-            )}
-
             {loading && !selectedPropertyId ? (
                 <div className="grid grid-cols-1 gap-6 animate-pulse">
                     <div className="h-64 glass-card bg-[var(--input-bg)]/50 rounded-[2rem] border-none shadow-none"></div>
@@ -227,69 +237,68 @@ function AgentBookingsContent() {
                             />
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            {/* Calendar Column */}
-                            <div className="lg:col-span-8 space-y-4">
-                                <div className="flex items-center justify-between px-2">
-                                    <div className="flex items-center gap-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest">
-                                        <CalendarIcon size={14} />
-                                        <span>Real-time availability</span>
-                                    </div>
-                                    {calendarLoading && (
-                                        <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--foreground-muted)] animate-pulse">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                                            Updating...
-                                        </div>
-                                    )}
+                        <div className="space-y-4">
+                            {/* Full Width Calendar */}
+                            <div className="flex items-center justify-between px-2">
+                                <div className="flex items-center gap-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+                                    <CalendarIcon size={14} />
+                                    <span>Real-time availability</span>
                                 </div>
-                                <Calendar
-                                    occupiedRanges={occupiedRanges}
-                                    onRangeSelect={handleRangeSelect}
-                                    onBookingClick={(id) => {
-                                        const booking = bookings.find(b => b.id === id);
-                                        if (booking) setSelectedBooking(booking);
-                                    }}
-                                    selectedStart={checkIn}
-                                    selectedEnd={checkOut}
-                                    pricePerNight={selectedProperty?.pricePerNight || 0}
-                                    currency={selectedProperty?.currency || "INR"}
-                                    isOwner={true}
-                                />
-                            </div>
-
-                            {/* Sidebar Column */}
-                            <div className="lg:col-span-4 space-y-6">
-                                {!checkIn ? (
-                                    <div className="glass-card p-8 text-center bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-dashed border-2 border-indigo-500/20 flex flex-col items-center justify-center min-h-[400px]">
-                                        <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-4 text-indigo-500">
-                                            <CalendarIcon size={32} />
-                                        </div>
-                                        <h3 className="text-xl font-black text-[var(--foreground)] mb-2 uppercase tracking-tight">VILLA BOOKING</h3>
-                                        <p className="text-[var(--foreground-muted)] text-sm font-bold max-w-[200px]">
-                                            Select available dates on the calendar to reserve this property.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="animate-scale-in">
-                                        <AgentBookingSidebar
-                                            property={selectedProperty!}
-                                            checkIn={checkIn}
-                                            checkOut={checkOut}
-                                            onCancel={() => {
-                                                setCheckIn(null);
-                                                setCheckOut(null);
-                                            }}
-                                            onSuccess={() => {
-                                                setCheckIn(null);
-                                                setCheckOut(null);
-                                                handleRefresh();
-                                            }}
-                                        />
+                                {calendarLoading && (
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--foreground-muted)] animate-pulse">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                        Updating...
                                     </div>
                                 )}
                             </div>
+                            <Calendar
+                                occupiedRanges={occupiedRanges}
+                                onRangeSelect={handleRangeSelect}
+                                onBookingClick={(id) => {
+                                    const booking = bookings.find(b => b.id === id);
+                                    if (booking) setSelectedBooking(booking);
+                                }}
+                                selectedStart={checkIn}
+                                selectedEnd={checkOut}
+                                pricePerNight={selectedProperty?.pricePerNight || 0}
+                                currency={selectedProperty?.currency || "INR"}
+                                isOwner={true}
+                            />
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Booking Wizard Modal (New & Edit) */}
+            {(editingBooking || (checkIn && checkOut && selectedProperty)) && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        onClick={() => {
+                            setEditingBooking(null);
+                            setCheckIn(null);
+                            setCheckOut(null);
+                        }}
+                    />
+                    <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto">
+                        <AgentBookingSidebar
+                            bookingToEdit={editingBooking || undefined}
+                            property={selectedProperty!}
+                            checkIn={editingBooking ? new Date(editingBooking.checkIn) : checkIn}
+                            checkOut={editingBooking ? new Date(editingBooking.checkOut) : checkOut}
+                            onCancel={() => {
+                                setEditingBooking(null);
+                                setCheckIn(null);
+                                setCheckOut(null);
+                            }}
+                            onSuccess={() => {
+                                setEditingBooking(null);
+                                setCheckIn(null);
+                                setCheckOut(null);
+                                handleRefresh();
+                            }}
+                        />
+                    </div>
                 </div>
             )}
 

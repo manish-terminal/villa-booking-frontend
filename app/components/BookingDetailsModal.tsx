@@ -59,11 +59,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
 
   const fetchPaymentInfo = async () => {
     try {
-      const [pRes, sRes] = await Promise.all([
-        api.getBookingPayments(booking.id),
-        api.getBookingPaymentStatus(booking.id)
-      ]);
-      setPayments(pRes.payments || []);
+      const sRes = await api.getBookingPaymentStatus(booking.id);
       setPaymentSummary(sRes);
     } catch (err) {
       console.error("Failed to fetch payment info", err);
@@ -231,17 +227,9 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
               <div className="flex justify-between items-end relative z-10">
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Stay Total</p>
-                  <p className="text-4xl font-black text-[#0F172A] tracking-tight">₹{booking.totalAmount.toLocaleString()}</p>
+                  <p className="text-4xl font-black text-[#0F172A] tracking-tight">₹{(paymentSummary?.totalAmount ?? booking.totalAmount).toLocaleString()}</p>
                 </div>
-                {paymentSummary && paymentSummary.totalDue > 0 && (
-                  <button
-                    onClick={handleSettle}
-                    disabled={loading}
-                    className="px-6 py-3 bg-[#0F172A] text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
-                  >
-                    Settle Full
-                  </button>
-                )}
+
               </div>
 
               <div className="grid grid-cols-2 gap-8 border-t border-slate-50 pt-8">
@@ -319,26 +307,9 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
             )}
 
             <div className="space-y-3">
-              {payments.length === 0 ? (
-                <div className="py-16 bg-white border border-dashed border-slate-200 rounded-[2rem] text-center opacity-60">
-                  <CreditCard size={32} className="mx-auto mb-4 text-slate-300" />
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">No transactional data</p>
-                </div>
-              ) : (
-                payments.map(p => (
-                  <div key={p.id} className="flex items-center justify-between p-6 bg-white border border-slate-100 rounded-2xl hover:border-slate-200 hover:shadow-md transition-all group">
-                    <div className="flex items-center gap-6">
-                      <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
-                        <CreditCard size={20} />
-                      </div>
-                      <div>
-                        <p className="text-lg font-black text-[#0F172A] tracking-tight">₹{p.amount.toLocaleString()}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{p.method} • {format(new Date(p.paymentDate), "MMM dd, yyyy")}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+              <div className="space-y-3">
+                {/* Transaction history list unavailable as per configuration */}
+              </div>
             </div>
           </section>
         </div>

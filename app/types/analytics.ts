@@ -41,10 +41,7 @@ export interface AgentAnalytics {
     totalCollected: number;
     totalCommission: number;
     currency: string;
-    bookingsByStatus: {
-        confirmed: number;
-        pending_confirmation: number;
-    };
+    bookingsByStatus: Record<string, number>;
     recentBookings: {
         bookingId: string;
         propertyName: string;
@@ -58,6 +55,14 @@ export interface AgentAnalytics {
     }[];
     periodStart: string;
     periodEnd: string;
+}
+
+export interface PropertyPerformance {
+    propertyId: string;
+    propertyName: string;
+    totalRevenue: number;
+    totalCommission: number;
+    bookingCount: number;
 }
 
 export interface DashboardStats {

@@ -162,7 +162,7 @@ function AgentBookingsContent() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-[var(--foreground)] tracking-tight uppercase">Booking Ledger</h1>
-                    <p className="text-[var(--foreground-muted)] font-medium text-sm">Review history or check global availability</p>
+                    <p className="text-[var(--foreground-muted)] font-medium text-sm">Select a date on calendar to view availability,create a booking,and complete the reservation process. </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">

@@ -19,6 +19,7 @@ const AMENITY_OPTIONS = [
   { id: "gym", label: "Gym", icon: "💪" },
   { id: "pet_friendly", label: "Pet Friendly", icon: "🐕" },
   { id: "beach_access", label: "Beach Access", icon: "🏖️" },
+  { id: "lawn", label: "Lawn", icon: "🌿" },
 ];
 
 // Format currency

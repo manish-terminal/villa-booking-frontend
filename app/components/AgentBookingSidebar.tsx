@@ -101,7 +101,7 @@ export default function AgentBookingSidebar({
             showToast("Please enter guest name", "error");
             return false;
         }
-        if (!formData.guestPhone.trim() || formData.guestPhone.length < 10) {
+        if (formData.guestPhone.trim() && formData.guestPhone.length < 10) {
             showToast("Please enter valid phone number", "error");
             return false;
         }
@@ -303,12 +303,11 @@ export default function AgentBookingSidebar({
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phone *</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phone (Optional)</label>
                                 <div className="relative flex">
                                     <span className="bg-slate-100 border border-r-0 border-slate-200 rounded-l-xl px-3 py-3 text-sm font-bold text-slate-500">+91</span>
                                     <input
                                         type="tel"
-                                        required
                                         placeholder="9876543210"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-3 text-sm outline-none focus:border-[#0D7A6B] transition-colors"
                                         value={formData.guestPhone}
@@ -401,7 +400,7 @@ export default function AgentBookingSidebar({
                         </div>
 
                         <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Advance Payment (Optional)</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Advance Payment (if taken,please enter)</label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
                                 <input

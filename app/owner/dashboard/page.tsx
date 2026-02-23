@@ -161,7 +161,7 @@ const OwnerHomePage: React.FC = () => {
     return (
         <div className="pb-32">
             <div className="p-4 pt-4">
-                <h1 className="text-2xl font-black text-slate-900 px-2 mb-1">StayXL Dashboard</h1>
+                <h1 className="text-2xl font-black text-slate-900 px-2 mb-1">TABBL Dashboard</h1>
                 <p className="text-slate-400 text-sm px-2 mb-6 font-medium">Overview of all properties</p>
             </div>
 

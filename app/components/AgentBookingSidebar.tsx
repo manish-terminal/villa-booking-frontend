@@ -396,21 +396,7 @@ export default function AgentBookingSidebar({
                                 />
                             </div>
                         </div>
-
-                        <div className="bg-[#0D7A6B] text-white p-4 rounded-xl">
-                            <label className="text-[10px] font-bold text-white/70 uppercase tracking-wider mb-2 block">Total Amount</label>
-                            <div className="relative">
-                                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-lg font-black">₹</span>
-                                <input
-                                    type="number"
-                                    className="w-full bg-transparent pl-6 py-1 text-2xl font-black outline-none"
-                                    value={formData.totalAmount || ""}
-                                    onChange={(e) => handleNumberChange("totalAmount", e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
+                                     <div>
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Advance Payment (if taken,please enter)</label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
@@ -444,6 +430,21 @@ export default function AgentBookingSidebar({
                                 </div>
                             </div>
                         )}
+
+                        <div className="bg-[#0D7A6B] text-white p-4 rounded-xl">
+                            <label className="text-[10px] font-bold text-white/70 uppercase tracking-wider mb-2 block">Total Amount</label>
+                            <div className="relative">
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-lg font-black">₹</span>
+                                <input
+                                    type="number"
+                                    className="w-full bg-transparent pl-6 py-1 text-2xl font-black outline-none"
+                                    value={formData.totalAmount || ""}
+                                    onChange={(e) => handleNumberChange("totalAmount", e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+           
                     </div>
                 )}
 

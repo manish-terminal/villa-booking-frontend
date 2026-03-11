@@ -218,6 +218,7 @@ export default function BookingsPage() {
                         </svg>
                         Calendar
                     </button>
+                    
                     <button
                         onClick={() => setViewMode('list')}
                         className={`flex-1 py-2.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-all ${viewMode === 'list'
@@ -232,7 +233,7 @@ export default function BookingsPage() {
                     </button>
                 </div>
             </div>
-
+                                <p className="text-[var(--foreground-muted)] font-medium text-sm">Select a date on calendar to view availability,create a booking,and complete the reservation process. </p>
             {/* Editing Sidebar Overlay */}
             {editingBooking && selectedProperty && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">

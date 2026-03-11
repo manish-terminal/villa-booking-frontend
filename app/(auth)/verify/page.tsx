@@ -31,8 +31,7 @@ function VerifyPageContent() {
     const [step, setStep] = useState<VerifyStep>("otp");
     const [name, setName] = useState("");
     const [role, setRole] = useState<"owner" | "agent">("owner");
-    const [inviteCode, setInviteCode] = useState("");
-    const [errors, setErrors] = useState<{ name?: string; inviteCode?: string }>({});
+    const [errors, setErrors] = useState<{ name?: string }>({});
 
     // Redirect if no phone
     useEffect(() => {
@@ -109,9 +108,6 @@ function VerifyPageContent() {
             newErrors.name = "Name must be at least 2 characters";
         }
 
-        if (role === "agent" && !inviteCode) {
-            newErrors.inviteCode = "Invite code is required for agents";
-        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -270,7 +266,7 @@ function VerifyPageContent() {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => { setRole("owner"); setInviteCode(""); setErrors(p => ({ ...p, inviteCode: undefined })); }}
+                                        onClick={() => { setRole("owner"); }}
                                         disabled={loading}
                                         className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group ${role === "owner"
                                             ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-lg shadow-navy-900/20"
@@ -314,21 +310,6 @@ function VerifyPageContent() {
                                 {errors.name && <p className="form-error px-1 text-[10px] font-bold uppercase tracking-tight">{errors.name}</p>}
                             </div>
 
-                            {/* Invite Code for agents */}
-                            {role === "agent" && (
-                                <div className="space-y-2 animate-slide-up">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground-muted)] px-1">Invite Credentials</label>
-                                    <input
-                                        type="text"
-                                        value={inviteCode}
-                                        onChange={(e) => { setInviteCode(e.target.value.toUpperCase()); setErrors(p => ({ ...p, inviteCode: undefined })); }}
-                                        placeholder="ENTER INVITE CODE"
-                                        disabled={loading}
-                                        className={`w-full glass-input !py-4 px-5 text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] font-black tracking-widest uppercase ${errors.inviteCode ? "error" : ""}`}
-                                    />
-                                    {errors.inviteCode && <p className="form-error px-1 text-[10px] font-bold uppercase tracking-tight">{errors.inviteCode}</p>}
-                                </div>
-                            )}
 
                             <Button onClick={handleSubmit} loading={loading}>
                                 <span className="flex items-center justify-center gap-2">

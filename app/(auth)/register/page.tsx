@@ -22,14 +22,10 @@ function RegisterPageContent() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [role, setRole] = useState<UserRole>("owner");
-    const [inviteCode, setInviteCode] = useState("");
     const [loading, setLoading] = useState(false);
-    const [validatingCode, setValidatingCode] = useState(false);
-    const [inviteCodeValid, setInviteCodeValid] = useState<boolean | null>(null);
     const [errors, setErrors] = useState<{
         name?: string;
         email?: string;
-        inviteCode?: string;
     }>({});
 
     // Redirect if no phone or code
@@ -39,39 +35,6 @@ function RegisterPageContent() {
         }
     }, [phone, otpCode, router]);
 
-    // Validate invite code when it changes (debounced)
-    useEffect(() => {
-        if (role !== "agent" || !inviteCode || inviteCode.length < 4) {
-            setInviteCodeValid(null);
-            return;
-        }
-
-        const timer = setTimeout(async () => {
-            setValidatingCode(true);
-            try {
-                const response = await api.validateInviteCode(inviteCode);
-                setInviteCodeValid(response.valid);
-                if (!response.valid) {
-                    setErrors((prev) => ({
-                        ...prev,
-                        inviteCode: "Invalid invite code",
-                    }));
-                } else {
-                    setErrors((prev) => ({ ...prev, inviteCode: undefined }));
-                }
-            } catch {
-                setInviteCodeValid(false);
-                setErrors((prev) => ({
-                    ...prev,
-                    inviteCode: "Could not validate code",
-                }));
-            } finally {
-                setValidatingCode(false);
-            }
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [inviteCode, role]);
 
     const validateForm = (): boolean => {
         const newErrors: typeof errors = {};
@@ -86,13 +49,6 @@ function RegisterPageContent() {
             newErrors.email = "Please enter a valid email address";
         }
 
-        if (role === "agent") {
-            if (!inviteCode) {
-                newErrors.inviteCode = "Invite code is required for agents";
-            } else if (inviteCodeValid === false) {
-                newErrors.inviteCode = "Invalid invite code";
-            }
-        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -231,12 +187,7 @@ function RegisterPageContent() {
                     <div className="role-tabs">
                         <button
                             type="button"
-                            onClick={() => {
-                                setRole("owner");
-                                setInviteCode("");
-                                setInviteCodeValid(null);
-                                setErrors((prev) => ({ ...prev, inviteCode: undefined }));
-                            }}
+                            onClick={() => setRole("owner")}
                             disabled={loading}
                             className={`role-tab ${role === "owner" ? "active" : ""}`}
                         >
@@ -283,82 +234,11 @@ function RegisterPageContent() {
                     </div>
                 </div>
 
-                {/* Invite Code - Only for agents */}
-                {role === "agent" && (
-                    <div className="animate-slide-up">
-                        <label className="form-label">
-                            Invite Code <span className="text-[var(--error)]">*</span>
-                        </label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={inviteCode}
-                                onChange={(e) => {
-                                    setInviteCode(e.target.value.toUpperCase());
-                                    setInviteCodeValid(null);
-                                    if (errors.inviteCode)
-                                        setErrors((prev) => ({ ...prev, inviteCode: undefined }));
-                                }}
-                                placeholder="Enter invite code from owner"
-                                disabled={loading}
-                                className={`w-full glass-input px-4 py-3 pr-10 text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] uppercase ${errors.inviteCode
-                                        ? "error"
-                                        : inviteCodeValid === true
-                                            ? "border-[var(--success)]"
-                                            : ""
-                                    }`}
-                            />
-                            {/* Validation Status Icon */}
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                {validatingCode && (
-                                    <div className="spinner spinner-dark w-4 h-4" />
-                                )}
-                                {!validatingCode && inviteCodeValid === true && (
-                                    <svg
-                                        className="w-5 h-5 text-[var(--success)]"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                        />
-                                    </svg>
-                                )}
-                                {!validatingCode && inviteCodeValid === false && (
-                                    <svg
-                                        className="w-5 h-5 text-[var(--error)]"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                        {errors.inviteCode && (
-                            <p className="form-error">{errors.inviteCode}</p>
-                        )}
-                        <p className="form-hint">
-                            Ask your property owner for an invite code
-                        </p>
-                    </div>
-                )}
 
                 {/* Submit Button */}
                 <Button
                     onClick={handleSubmit}
                     loading={loading}
-                    disabled={role === "agent" && !inviteCodeValid}
                 >
                     Continue
                 </Button>
@@ -375,7 +255,7 @@ function RegisterPageContent() {
                     ) : (
                         <>
                             <strong className="text-[var(--foreground)]">Agents</strong> can book
-                            properties on behalf of clients using owner-provided invite codes.
+                            properties on behalf of clients.
                         </>
                     )}
                 </p>

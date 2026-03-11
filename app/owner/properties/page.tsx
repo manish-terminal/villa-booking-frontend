@@ -7,14 +7,6 @@ import { APIError } from "@/app/types/auth";
 import { useToast } from "@/app/components/Toast";
 import Button from "@/app/components/Button";
 import {
-  Wifi,
-  Wind,
-  Car,
-  Utensils,
-  Tv,
-  Waves,
-  Dumbbell,
-  Dog,
   MapPin,
   Bed,
   Bath,
@@ -24,7 +16,10 @@ import {
   ArrowRight,
   X,
   CreditCard,
-  Building2
+  ChefHat,
+  Monitor,
+  Heart,
+  Building2,
 } from "lucide-react";
 
 // --- Constants ---

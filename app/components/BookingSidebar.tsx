@@ -79,6 +79,17 @@ export default function BookingSidebar({
         paymentMethod: "upi",
     });
 
+    const handleNumberChange = (key: string, value: string) => {
+        if (value === "") {
+            setFormData(prev => ({ ...prev, [key]: "" as unknown as number }));
+            return;
+        }
+        const num = parseInt(value);
+        if (!isNaN(num)) {
+            setFormData(prev => ({ ...prev, [key]: num }));
+        }
+    };
+
     const numNights = checkIn && checkOut ? differenceInDays(checkOut, checkIn) : 0;
 
     // Sync pricePerNight when property changes
@@ -91,7 +102,7 @@ export default function BookingSidebar({
     // Effect to update total when price or nights changes
     useEffect(() => {
         if (numNights > 0) {
-            setFormData(prev => ({ ...prev, totalAmount: numNights * prev.pricePerNight }));
+            setFormData(prev => ({ ...prev, totalAmount: numNights * (Number(prev.pricePerNight) || 0) }));
         }
     }, [numNights, formData.pricePerNight]);
 
@@ -323,8 +334,8 @@ export default function BookingSidebar({
                                         min="1"
                                         max={property.maxGuests}
                                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#0D7A6B] transition-colors"
-                                        value={formData.numGuests}
-                                        onChange={(e) => setFormData({ ...formData, numGuests: parseInt(e.target.value) || 1 })}
+                                        value={formData.numGuests || ""}
+                                        onChange={(e) => handleNumberChange("numGuests", e.target.value)}
                                     />
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">/ {property.maxGuests}</span>
                                 </div>
@@ -357,8 +368,8 @@ export default function BookingSidebar({
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-7 pr-4 py-3 text-sm font-bold outline-none focus:border-[#0D7A6B] transition-colors"
-                                        value={formData.pricePerNight}
-                                        onChange={(e) => setFormData({ ...formData, pricePerNight: parseInt(e.target.value) || 0 })}
+                                        value={formData.pricePerNight || ""}
+                                        onChange={(e) => handleNumberChange("pricePerNight", e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -377,8 +388,8 @@ export default function BookingSidebar({
                                 <input
                                     type="number"
                                     className="w-full bg-transparent pl-6 py-1 text-2xl font-black outline-none"
-                                    value={formData.totalAmount}
-                                    onChange={(e) => setFormData({ ...formData, totalAmount: parseInt(e.target.value) || 0 })}
+                                    value={formData.totalAmount || ""}
+                                    onChange={(e) => handleNumberChange("totalAmount", e.target.value)}
                                 />
                             </div>
                         </div>
@@ -391,8 +402,8 @@ export default function BookingSidebar({
                                     type="number"
                                     placeholder="0"
                                     className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-7 pr-4 py-3 text-sm font-bold outline-none focus:border-[#0D7A6B] transition-colors"
-                                    value={formData.advancePayment}
-                                    onChange={(e) => setFormData({ ...formData, advancePayment: parseInt(e.target.value) || 0 })}
+                                    value={formData.advancePayment || ""}
+                                    onChange={(e) => handleNumberChange("advancePayment", e.target.value)}
                                 />
                             </div>
                         </div>

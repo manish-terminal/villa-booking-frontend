@@ -1,6 +1,6 @@
 {
-    "name": "VillaBook",
-    "short_name": "VillaBook",
+    "name": "Tabbl",
+    "short_name": "Tabbl",
     "description": "Premium Villa Booking Platform - Book luxury villas and properties with ease",
     "start_url": "/",
     "display": "standalone",

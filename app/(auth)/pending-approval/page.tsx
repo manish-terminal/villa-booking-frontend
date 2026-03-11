@@ -59,7 +59,7 @@ export default function PendingApprovalPage() {
                 </Link>
 
                 <a
-                    href="mailto:support@villabook.com"
+                    href="mailto:support@Tabbl.com"
                     className="block w-full btn-secondary text-center"
                 >
                     Contact Support

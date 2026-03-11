@@ -33,13 +33,25 @@ export default function ManualBookingModal({ property, onClose, onSuccess }: Man
         paymentMethod: "cash"
     });
 
+    const handleNumberChange = (key: string, value: string) => {
+        if (value === "") {
+            setFormData(prev => ({ ...prev, [key]: "" as unknown as number }));
+            return;
+        }
+        const num = parseInt(value);
+        if (!isNaN(num)) {
+            setFormData(prev => ({ ...prev, [key]: num }));
+        }
+    };
+
     const handleCalculateTotal = () => {
         const start = new Date(formData.checkIn);
         const end = new Date(formData.checkOut);
         const diffTime = Math.abs(end.getTime() - start.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const price = Number(formData.pricePerNight) || 0;
         if (diffDays > 0) {
-            setFormData(prev => ({ ...prev, totalAmount: diffDays * prev.pricePerNight }));
+            setFormData(prev => ({ ...prev, totalAmount: diffDays * price }));
         }
     };
 
@@ -132,8 +144,8 @@ export default function ManualBookingModal({ property, onClose, onSuccess }: Man
                                 <input
                                     type="number" required min="1"
                                     className="w-full bg-[var(--input-bg)] border-2 border-transparent focus:border-[var(--secondary)] rounded-2xl px-5 py-3 text-sm font-black text-[var(--foreground)] outline-none transition-all"
-                                    value={formData.numGuests}
-                                    onChange={e => setFormData({ ...formData, numGuests: parseInt(e.target.value) || 1 })}
+                                    value={formData.numGuests || ""}
+                                    onChange={e => handleNumberChange("numGuests", e.target.value)}
                                 />
                             </div>
                         </section>
@@ -175,8 +187,8 @@ export default function ManualBookingModal({ property, onClose, onSuccess }: Man
                                         <input
                                             type="number"
                                             className="w-full bg-white/10 border-b-2 border-white/20 focus:border-white focus:bg-white/20 rounded-t-lg pl-7 pr-4 py-2 text-sm font-black outline-none transition-all"
-                                            value={formData.pricePerNight}
-                                            onChange={e => setFormData({ ...formData, pricePerNight: parseInt(e.target.value) || 0 })}
+                                            value={formData.pricePerNight || ""}
+                                            onChange={e => handleNumberChange("pricePerNight", e.target.value)}
                                             onBlur={handleCalculateTotal}
                                         />
                                     </div>
@@ -188,8 +200,8 @@ export default function ManualBookingModal({ property, onClose, onSuccess }: Man
                                         <input
                                             type="number"
                                             className="w-full bg-white/10 border-b-2 border-emerald-500/30 focus:border-emerald-300 focus:bg-white/20 rounded-t-lg pl-7 pr-4 py-2 text-sm font-black text-emerald-300 outline-none transition-all"
-                                            value={formData.amountPaid}
-                                            onChange={e => setFormData({ ...formData, amountPaid: parseInt(e.target.value) || 0 })}
+                                            value={formData.amountPaid || ""}
+                                            onChange={e => handleNumberChange("amountPaid", e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -203,8 +215,8 @@ export default function ManualBookingModal({ property, onClose, onSuccess }: Man
                                         <input
                                             type="number"
                                             className="w-full bg-white/10 border-b-2 border-[var(--secondary)]/50 focus:border-[var(--secondary)] focus:bg-white/20 rounded-t-lg pl-7 pr-4 py-2 text-lg font-black text-[var(--secondary)] outline-none transition-all"
-                                            value={formData.totalAmount}
-                                            onChange={e => setFormData({ ...formData, totalAmount: parseInt(e.target.value) || 0 })}
+                                            value={formData.totalAmount || ""}
+                                            onChange={e => handleNumberChange("totalAmount", e.target.value)}
                                         />
                                     </div>
                                 </div>

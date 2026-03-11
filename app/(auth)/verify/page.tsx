@@ -131,7 +131,7 @@ function VerifyPageContent() {
             if (response.token) {
                 setToken(response.token);
                 setUser(response.user);
-                showToast(response.isNew ? "Welcome to VillaBook!" : "Welcome back!", "success");
+                showToast(response.isNew ? "Welcome to Tabbl!" : "Welcome back!", "success");
 
                 // Redirect to dashboard
                 const redirectPath = getRedirectPath(response.user);

@@ -44,7 +44,7 @@ export default function PWAInstallPrompt() {
 
                         <div className="flex-1 pt-1">
                             <h3 className="text-lg font-black text-slate-900 leading-tight mb-1">
-                                Install VillaBook
+                                Install Tabbl
                             </h3>
                             <p className="text-sm font-medium text-slate-500 leading-snug">
                                 {platform === 'ios'

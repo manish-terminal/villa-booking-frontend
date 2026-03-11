@@ -1,9 +1,9 @@
 /**
- * Service Worker for VillaBook PWA
+ * Service Worker for Tabbl PWA
  * Handles caching strategies for offline support and performance
  */
 
-const CACHE_NAME = 'villabook-cache-v1';
+const CACHE_NAME = 'Tabbl-cache-v1';
 const URLS_TO_CACHE = [
     '/',
     '/manifest.json',

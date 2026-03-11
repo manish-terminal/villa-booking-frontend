@@ -166,7 +166,7 @@ export default function LoginPage() {
                             <span className="text-[10px] font-black tracking-[0.25em] text-[#0f766e] uppercase">Premiere Luxury Escapes</span>
                         </div>
                         <h1 className="text-4xl font-black text-[#0a192f] tracking-tighter">
-                            {showPasswordOption ? "Welcome Back" : "VillaBook"}
+                            {showPasswordOption ? "Welcome Back" : "Tabbl"}
                         </h1>
                     </div>
                 </div>

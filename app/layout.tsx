@@ -11,13 +11,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VillaBook - Premium Villa Booking",
+  title: "TABBL - Premium Villa Booking",
   description: "Book luxury villas and properties with ease",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "VillaBook",
+    title: "Tabbl",
   },
   icons: {
     icon: "/icons/icon-192.png",

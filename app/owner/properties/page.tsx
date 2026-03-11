@@ -6,6 +6,26 @@ import { Property, CreatePropertyRequest } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
 import { useToast } from "@/app/components/Toast";
 import Button from "@/app/components/Button";
+import {
+  Wifi,
+  Wind,
+  Car,
+  Utensils,
+  Tv,
+  Waves,
+  Dumbbell,
+  Dog,
+  MapPin,
+  Bed,
+  Bath,
+  Users,
+  Plus,
+  Edit2,
+  ArrowRight,
+  X,
+  CreditCard,
+  Building2
+} from "lucide-react";
 
 // --- Constants ---
 const AMENITY_OPTIONS = [
@@ -59,9 +79,7 @@ function PropertyCard({ property, onEdit }: { property: Property; onEdit: (p: Pr
             />
           ) : (
             <div className="flex flex-col items-center gap-2 text-slate-300">
-              <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
+              <Building2 className="w-10 h-10" strokeWidth={1.5} />
               <span className="text-[10px] font-bold uppercase tracking-wider">No Image</span>
             </div>
           )}
@@ -94,10 +112,7 @@ function PropertyCard({ property, onEdit }: { property: Property; onEdit: (p: Pr
 
         {/* Location */}
         <div className="flex items-center gap-1.5 text-slate-400 mb-4">
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
+          <MapPin className="w-3.5 h-3.5" />
           <span className="text-xs font-medium">{property.city}, {property.state}</span>
         </div>
 
@@ -126,9 +141,7 @@ function PropertyCard({ property, onEdit }: { property: Property; onEdit: (p: Pr
             }}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <Edit2 className="w-3.5 h-3.5" />
             Edit
           </button>
           <button
@@ -136,9 +149,7 @@ function PropertyCard({ property, onEdit }: { property: Property; onEdit: (p: Pr
             className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-[#0D7A6B] text-white rounded-xl text-xs font-bold hover:bg-[#0a6358] transition-colors"
           >
             Bookings
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -159,6 +170,19 @@ function PropertyModal({ isOpen, onClose, property, onSave }: { isOpen: boolean;
     pricePerNight: 0, currency: "INR", maxGuests: 1, bedrooms: 1, bathrooms: 1,
     amenities: [], images: [],
   });
+
+  // Handle number changes carefully to avoid '0' prefix issues
+  const handleNumberChange = (key: string, val: string) => {
+    // allow empty string for typing experience
+    if (val === "") {
+      setFormData(prev => ({ ...prev, [key]: 0 }));
+      return;
+    }
+    const num = parseInt(val);
+    if (!isNaN(num)) {
+      setFormData(prev => ({ ...prev, [key]: num }));
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -212,7 +236,7 @@ function PropertyModal({ isOpen, onClose, property, onSave }: { isOpen: boolean;
             <p className="text-slate-400 text-xs font-medium mt-1">Fill in the property details</p>
           </div>
           <button onClick={onClose} className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
-            <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
@@ -283,20 +307,24 @@ function PropertyModal({ isOpen, onClose, property, onSave }: { isOpen: boolean;
           </div>
 
           {/* Section: Numbers */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "Price/Night", key: "pricePerNight", prefix: "₹" },
-              { label: "Max Guests", key: "maxGuests" },
-              { label: "Bedrooms", key: "bedrooms" },
-              { label: "Bathrooms", key: "bathrooms" }
+              { label: "Price/Night", key: "pricePerNight", icon: <CreditCard className="w-3.5 h-3.5" /> },
+              { label: "Max Guests", key: "maxGuests", icon: <Users className="w-3.5 h-3.5" /> },
+              { label: "Bedrooms", key: "bedrooms", icon: <Bed className="w-3.5 h-3.5" /> },
+              { label: "Bathrooms", key: "bathrooms", icon: <Bath className="w-3.5 h-3.5" /> }
             ].map(field => (
-              <div key={field.key}>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">{field.label}</label>
+              <div key={field.key} className="relative">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  {field.icon}
+                  {field.label}
+                </label>
                 <input
                   type="number"
-                  value={(formData as unknown as Record<string, number>)[field.key]}
-                  onChange={e => setFormData({ ...formData, [field.key]: parseInt(e.target.value) || 0 })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#0D7A6B] transition-colors"
+                  value={(formData as unknown as Record<string, number>)[field.key] || ""}
+                  onChange={e => handleNumberChange(field.key, e.target.value)}
+                  placeholder="0"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#0D7A6B] focus:ring-4 focus:ring-[#0D7A6B]/5 transition-all text-slate-700"
                 />
               </div>
             ))}
@@ -356,9 +384,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
       <div className="w-20 h-20 bg-[#0D7A6B]/10 text-[#0D7A6B] rounded-full flex items-center justify-center mb-6">
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
+        <Building2 className="w-8 h-8" strokeWidth={1.5} />
       </div>
       <h3 className="text-xl font-black text-slate-900 mb-2">No Properties Yet</h3>
       <p className="text-slate-400 text-sm max-w-sm mb-6">Start by adding your first property listing to your portfolio.</p>
@@ -414,9 +440,7 @@ export default function PropertiesPage() {
           onClick={handleAddNew}
           className="w-12 h-12 bg-[#051325] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200 hover:bg-[#0D7A6B] transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
+          <Plus className="w-5 h-5" />
         </button>
       </div>
 
@@ -458,9 +482,7 @@ export default function PropertiesPage() {
             className="w-full py-4 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 hover:border-[#0D7A6B] hover:text-[#0D7A6B] transition-colors"
           >
             <span className="flex items-center justify-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <Plus className="w-4 h-4" />
               Register New Property
             </span>
           </button>

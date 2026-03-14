@@ -18,7 +18,7 @@ import {
     parseISO,
     startOfDay,
 } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw } from "lucide-react";
 import { OccupiedRange } from "@/app/types/property";
 
 interface CalendarProps {
@@ -31,6 +31,8 @@ interface CalendarProps {
     currency: string;
     isOwner?: boolean;
     hideLegend?: boolean;
+    onRefresh?: () => void;
+    isRefreshing?: boolean;
 }
 
 export default function Calendar({
@@ -40,6 +42,8 @@ export default function Calendar({
     selectedStart,
     selectedEnd,
     isOwner = false,
+    onRefresh,
+    isRefreshing = false,
 }: CalendarProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -144,6 +148,16 @@ export default function Calendar({
                     >
                         <ChevronRight size={20} />
                     </button>
+                    {onRefresh && (
+                        <button
+                            onClick={onRefresh}
+                            disabled={isRefreshing}
+                            className={`p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--foreground)] active:scale-95 ml-2 ${isRefreshing ? 'opacity-50' : ''}`}
+                            title="Refresh calendar"
+                        >
+                            <RotateCw size={18} className={isRefreshing ? "animate-spin" : ""} />
+                        </button>
+                    )}
                 </div>
             </div>
 

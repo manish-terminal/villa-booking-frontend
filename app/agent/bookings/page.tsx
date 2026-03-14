@@ -244,12 +244,6 @@ function AgentBookingsContent() {
                                     <CalendarIcon size={14} />
                                     <span>Real-time availability</span>
                                 </div>
-                                {calendarLoading && (
-                                    <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--foreground-muted)] animate-pulse">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                                        Updating...
-                                    </div>
-                                )}
                             </div>
                             <Calendar
                                 occupiedRanges={occupiedRanges}
@@ -263,6 +257,8 @@ function AgentBookingsContent() {
                                 pricePerNight={selectedProperty?.pricePerNight || 0}
                                 currency={selectedProperty?.currency || "INR"}
                                 isOwner={true}
+                                onRefresh={handleRefresh}
+                                isRefreshing={calendarLoading}
                             />
                         </div>
                     )}

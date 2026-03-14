@@ -43,11 +43,6 @@ export default function Calendar({
 }: CalendarProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
-    // VERY LOUD LOG FOR DEBUGGING
-    useMemo(() => {
-        console.error("DEBUG: Calendar Component active. Ranges:", occupiedRanges.length, "Props:", { isOwner, hasOnBookingClick: !!onBookingClick });
-    }, [occupiedRanges, isOwner, onBookingClick]);
-
     const days = useMemo(() => {
         const monthStart = startOfMonth(currentMonth);
         const monthEnd = endOfMonth(monthStart);
@@ -64,37 +59,41 @@ export default function Calendar({
         const bId = occ.bookingId || (occ as any).id;
         const clickable = !!(bId && isOwner && onBookingClick && occ.guestName && occ.guestName !== '***');
 
-        // VERY NOISY LOG FOR EVERY OCCUPIED DOT
-        console.warn(`[DEBUG] Day ${occ.checkIn}: Clickable=${clickable}`, {
-            bId, isOwner, guest: occ.guestName, hasHandler: !!onBookingClick
-        });
-
         return clickable;
     };
 
     const handleDateClick = (day: Date) => {
         const occupied = getOccupiedStatus(day);
-        if (occupied) {
+
+        // If we are selecting a START date and it's occupied, we can only view details
+        if (!selectedStart && occupied) {
             if (isClickable(occupied)) {
-                const bId = occupied.bookingId || ('id' in occupied ? (occupied as { id?: string }).id : undefined);
+                const bId = occupied.bookingId || (occupied as any).id;
                 onBookingClick!(bId!);
             }
             return;
         }
 
-        // Allow selection of past dates
-        // if (isBefore(day, startOfDay(new Date()))) return;
-
+        // Handle selection
         if (!selectedStart || (selectedStart && selectedEnd)) {
+            // Start a new selection (only if not occupied, or if occupied we already handled it above)
+            if (occupied) return;
             onRangeSelect(day, null);
         } else if (selectedStart && !selectedEnd) {
             if (isSameDay(day, selectedStart) || isBefore(day, selectedStart)) {
                 onRangeSelect(day, null);
             } else {
-                // Check if interval has occupied days
-                const hasOccupied = daysInRange(selectedStart, day).some(d => getOccupiedStatus(d));
-                if (hasOccupied) {
-                    // If range contains occupied dates, just start a new selection at the clicked date
+                // NIGHT-BASED CHECK:
+                // Check if any date from selectedStart up to (but not including) the selected checkout day is occupied.
+                // This allows the checkout day itself to be the check-in day of another booking.
+                const nights = eachDayOfInterval({
+                    start: selectedStart,
+                    end: day
+                }).slice(0, -1);
+
+                const hasBlockedNight = nights.some(d => getOccupiedStatus(d));
+
+                if (hasBlockedNight) {
                     onRangeSelect(day, null);
                 } else {
                     onRangeSelect(selectedStart, day);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, parseISO } from "date-fns";
 import { api } from "@/app/lib/api";
 import { useToast } from "@/app/components/Toast";
 import { CreateBookingRequest, Property, Booking } from "@/app/types/property";
@@ -145,17 +145,34 @@ export default function BookingSidebar({
 
         setLoading(true);
         try {
+            const checkInStr = format(checkIn, "yyyy-MM-dd");
+            const checkOutStr = format(checkOut, "yyyy-MM-dd");
+
             // 1. Check availability
             const availability = await api.checkAvailability(
                 property.id,
-                format(checkIn, "yyyy-MM-dd"),
-                format(checkOut, "yyyy-MM-dd")
+                checkInStr,
+                checkOutStr
             );
 
             if (!availability.available) {
-                // If editing, exclude the current booking from availability check
-                const otherBookings = availability.bookings?.filter(b => b.id !== bookingToEdit?.id) || [];
-                if (otherBookings.length > 0) {
+                // CLIENT-SIDE NIGHT-BASED RE-VALIDATION
+                // The backend might be using inclusive date checks (incorrect).
+                // We only count it as a conflict if: start1 < end2 AND start2 < end1
+                const conflictingBookings = (availability.bookings || []).filter(existing => {
+                    // Exclude the current booking if we are editing
+                    if (bookingToEdit && existing.id === bookingToEdit.id) return false;
+
+                    const start1 = checkInStr;
+                    const end1 = checkOutStr;
+                    const start2 = format(parseISO(existing.checkIn), "yyyy-MM-dd");
+                    const end2 = format(parseISO(existing.checkOut), "yyyy-MM-dd");
+
+                    // Overlap logic: start1 < end2 AND start2 < end1
+                    return start1 < end2 && start2 < end1;
+                });
+
+                if (conflictingBookings.length > 0) {
                     showToast("These dates are no longer available.", "error");
                     setLoading(false);
                     return;
@@ -380,7 +397,7 @@ export default function BookingSidebar({
                                 </div>
                             </div>
                         </div>
-                                                <div>
+                        <div>
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Advance Payment (if taken,please enter)</label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>

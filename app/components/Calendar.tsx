@@ -198,7 +198,7 @@ export default function Calendar({
                                 <div
                                     className={`
                                         absolute inset-x-2 bottom-3 h-1.5 rounded-full shadow-sm pointer-events-none
-                                        ${isClickable(occupied) ? "bg-emerald-500" : "bg-orange-400"}
+                                        ${isClickable(occupied) ? "bg-emerald-500" : "bg-gray-400"}
                                     `}
                                 />
                             )}

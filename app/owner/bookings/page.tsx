@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { format, addYears, subYears } from "date-fns";
+import { format, addYears, subYears, parseISO, startOfDay } from "date-fns";
 import { api } from "@/app/lib/api";
 import { Property, OccupiedRange, Booking } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
@@ -79,6 +79,22 @@ export default function BookingsPage() {
                     b.guestName && b.guestName.trim() !== '' &&
                     b.checkIn && new Date(b.checkIn).getFullYear() > 2000
                 );
+
+                // Sort bookings: Upcoming first (Soonest), then Past (Most Recent)
+                const today = startOfDay(new Date());
+                validBookings.sort((a: Booking, b: Booking) => {
+                    const startA = parseISO(a.checkIn);
+                    const startB = parseISO(b.checkIn);
+                    const isUpcomingA = startA >= today;
+                    const isUpcomingB = startB >= today;
+
+                    if (isUpcomingA && !isUpcomingB) return -1;
+                    if (!isUpcomingA && isUpcomingB) return 1;
+
+                    if (isUpcomingA) return startA.getTime() - startB.getTime();
+                    return startB.getTime() - startA.getTime();
+                });
+
                 setBookings(validBookings);
                 setCheckIn(null);
                 setCheckOut(null);
@@ -115,6 +131,22 @@ export default function BookingsPage() {
                 b.guestName && b.guestName.trim() !== '' &&
                 b.checkIn && new Date(b.checkIn).getFullYear() > 2000
             );
+
+            // Sort bookings: Upcoming first (Soonest), then Past (Most Recent)
+            const today = startOfDay(new Date());
+            validBookings.sort((a: Booking, b: Booking) => {
+                const startA = parseISO(a.checkIn);
+                const startB = parseISO(b.checkIn);
+                const isUpcomingA = startA >= today;
+                const isUpcomingB = startB >= today;
+
+                if (isUpcomingA && !isUpcomingB) return -1;
+                if (!isUpcomingA && isUpcomingB) return 1;
+
+                if (isUpcomingA) return startA.getTime() - startB.getTime();
+                return startB.getTime() - startA.getTime();
+            });
+
             setBookings(validBookings);
 
             if (selectedBooking) {
@@ -236,7 +268,6 @@ export default function BookingsPage() {
                     </button>
                 </div>
             </div>
-            <p className="text-[var(--foreground-muted)] font-medium text-sm">Select a date on calendar to view availability,create a booking,and complete the reservation process. </p>
             {/* Editing Sidebar Overlay */}
             {editingBooking && selectedProperty && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -268,35 +299,46 @@ export default function BookingsPage() {
                         {calendarLoading ? (
                             <div className="bg-[#051325] rounded-[2.5rem] border border-white/5 p-6 h-[500px] animate-pulse"></div>
                         ) : (
-                            <div className="rounded-[2.5rem] overflow-hidden">
-                                <Calendar
-                                    occupiedRanges={occupiedRanges}
-                                    onRangeSelect={handleRangeSelect}
-                                    onBookingClick={(id) => {
-                                        if (!id) return;
-                                        console.log("Calendar click - Booking ID:", id);
-                                        const booking = bookings.find(b => b.id === id);
-                                        if (booking) {
-                                            setSelectedBooking(booking);
-                                        } else {
-                                            console.warn("Booking not found in local state, trying to fetch...");
-                                            showToast("Opening booking details...", "success");
-                                            api.getBooking(id, selectedPropertyId).then((setOneBooking: Booking) => {
-                                                setSelectedBooking(setOneBooking);
-                                            }).catch((err: APIError) => {
-                                                console.error("Failed to fetch booking details", err);
-                                                showToast(err.error || "Could not open details", "error");
-                                            });
-                                        }
-                                    }}
-                                    selectedStart={checkIn}
-                                    selectedEnd={checkOut}
-                                    pricePerNight={selectedProperty?.pricePerNight || 0}
-                                    currency={selectedProperty?.currency || "INR"}
-                                    isOwner={true}
-                                    onRefresh={refreshData}
-                                    isRefreshing={calendarLoading}
-                                />
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest px-2">
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span>Real-time availability</span>
+                                </div>
+                                <p className="text-[var(--foreground-muted)] font-medium text-sm px-2">
+                                    Select a date on calendar to view availability, create a booking, and complete the reservation process.
+                                </p>
+                                <div className="rounded-[2.5rem] overflow-hidden">
+                                    <Calendar
+                                        occupiedRanges={occupiedRanges}
+                                        onRangeSelect={handleRangeSelect}
+                                        onBookingClick={(id) => {
+                                            if (!id) return;
+                                            console.log("Calendar click - Booking ID:", id);
+                                            const booking = bookings.find(b => b.id === id);
+                                            if (booking) {
+                                                setSelectedBooking(booking);
+                                            } else {
+                                                console.warn("Booking not found in local state, trying to fetch...");
+                                                showToast("Opening booking details...", "success");
+                                                api.getBooking(id, selectedPropertyId).then((setOneBooking: Booking) => {
+                                                    setSelectedBooking(setOneBooking);
+                                                }).catch((err: APIError) => {
+                                                    console.error("Failed to fetch booking details", err);
+                                                    showToast(err.error || "Could not open details", "error");
+                                                });
+                                            }
+                                        }}
+                                        selectedStart={checkIn}
+                                        selectedEnd={checkOut}
+                                        pricePerNight={selectedProperty?.pricePerNight || 0}
+                                        currency={selectedProperty?.currency || "INR"}
+                                        isOwner={true}
+                                        onRefresh={refreshData}
+                                        isRefreshing={calendarLoading}
+                                    />
+                                </div>
                             </div>
                         )}
 

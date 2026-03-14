@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { format, addYears, subYears } from "date-fns";
+import { format, addYears, subYears, parseISO, startOfDay } from "date-fns";
 import { api } from "@/app/lib/api";
 import { Booking, Property, OccupiedRange } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
@@ -98,6 +98,21 @@ function AgentBookingsContent() {
                     }
                 }));
 
+                // Sort bookings: Upcoming first (Soonest), then Past (Most Recent)
+                const today = startOfDay(new Date());
+                enrichedBookings.sort((a, b) => {
+                    const startA = parseISO(a.checkIn);
+                    const startB = parseISO(b.checkIn);
+                    const isUpcomingA = startA >= today;
+                    const isUpcomingB = startB >= today;
+
+                    if (isUpcomingA && !isUpcomingB) return -1;
+                    if (!isUpcomingA && isUpcomingB) return 1;
+
+                    if (isUpcomingA) return startA.getTime() - startB.getTime();
+                    return startB.getTime() - startA.getTime();
+                });
+
                 setBookings(enrichedBookings);
                 setOccupiedRanges(calendarRes.occupied || []);
 
@@ -134,6 +149,21 @@ function AgentBookingsContent() {
                 }
             }));
 
+            // Sort bookings: Upcoming first (Soonest), then Past (Most Recent)
+            const today = startOfDay(new Date());
+            enrichedBookings.sort((a, b) => {
+                const startA = parseISO(a.checkIn);
+                const startB = parseISO(b.checkIn);
+                const isUpcomingA = startA >= today;
+                const isUpcomingB = startB >= today;
+
+                if (isUpcomingA && !isUpcomingB) return -1;
+                if (!isUpcomingA && isUpcomingB) return 1;
+
+                if (isUpcomingA) return startA.getTime() - startB.getTime();
+                return startB.getTime() - startA.getTime();
+            });
+
             setBookings(enrichedBookings);
             setOccupiedRanges(calendarRes.occupied || []);
 
@@ -162,7 +192,6 @@ function AgentBookingsContent() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-[var(--foreground)] tracking-tight uppercase">Booking Ledger</h1>
-                    <p className="text-[var(--foreground-muted)] font-medium text-sm">Select a date on calendar to view availability,create a booking,and complete the reservation process. </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -245,6 +274,9 @@ function AgentBookingsContent() {
                                     <span>Real-time availability</span>
                                 </div>
                             </div>
+                            <p className="text-[var(--foreground-muted)] font-medium text-sm px-2">
+                                Select a date on calendar to view availability, create a booking, and complete the reservation process.
+                            </p>
                             <Calendar
                                 occupiedRanges={occupiedRanges}
                                 onRangeSelect={handleRangeSelect}

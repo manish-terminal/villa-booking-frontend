@@ -232,7 +232,6 @@ const OwnerHomePage: React.FC = () => {
                                         booking={booking}
                                         formatDate={formatDate}
                                         formatCurrency={formatCurrency}
-                                        onEdit={() => handleEdit(booking)}
                                         onSelect={() => setSelectedBooking(booking)}
                                     />
                                 ))}
@@ -261,7 +260,6 @@ const OwnerHomePage: React.FC = () => {
                                         formatDate={formatDate}
                                         formatCurrency={formatCurrency}
                                         isHistory
-                                        onEdit={() => handleEdit(booking)}
                                         onSelect={() => setSelectedBooking(booking)}
                                     />
                                 ))}

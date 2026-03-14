@@ -225,7 +225,6 @@ export default function AgentDashboard() {
                     booking={booking}
                     formatDate={formatDate}
                     formatCurrency={formatCurrency}
-                    onEdit={() => handleEdit(booking)}
                     onSelect={() => setSelectedBooking(booking)}
                     commission={booking.agentCommission}
                   />
@@ -255,7 +254,6 @@ export default function AgentDashboard() {
                     formatDate={formatDate}
                     formatCurrency={formatCurrency}
                     isHistory
-                    onEdit={() => handleEdit(booking)}
                     onSelect={() => setSelectedBooking(booking)}
                     commission={booking.agentCommission}
                   />

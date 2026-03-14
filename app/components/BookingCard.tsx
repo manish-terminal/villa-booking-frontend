@@ -12,7 +12,6 @@ interface BookingCardProps {
     formatDate: (d: string) => string;
     formatCurrency: (v: number, c?: string) => string;
     isHistory?: boolean;
-    onEdit: () => void;
     onSelect: () => void;
     commission?: number;
 }
@@ -46,7 +45,6 @@ const BookingCard: React.FC<BookingCardProps> = ({
     formatDate,
     formatCurrency,
     isHistory,
-    onEdit,
     onSelect,
     commission
 }) => {
@@ -55,7 +53,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
     return (
         <div
-            className={`rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden pl-6 pr-6 py-6 transition-all ${isHistory ? 'opacity-70' : ''
+            onClick={onSelect}
+            className={`rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden pl-6 pr-6 py-6 transition-all cursor-pointer hover:shadow-md hover:scale-[1.01] active:scale-[0.99] ${isHistory ? 'opacity-70' : ''
                 } ${isMine ? 'bg-emerald-50/50' : 'bg-slate-50'}`}
         >
             {/* Side Accent Bar */}
@@ -78,21 +77,6 @@ const BookingCard: React.FC<BookingCardProps> = ({
                     <div className={`text-[10px] font-black px-3 py-1 rounded-full ${getStatusStyle(booking.paymentSummary?.status || booking.status)}`}>
                         {getStatusText(booking.paymentSummary?.status || booking.status)}
                     </div>
-                    {/* Edit for Direct Bookings */}
-                    {isValidDisplayValue(booking.guestName) && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit();
-                            }}
-                            className="text-[9px] font-black text-white bg-slate-900 px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-1.5"
-                        >
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Edit
-                        </button>
-                    )}
                     {/* Aggressive Agent Display for Masked Bookings */}
                     {!isValidDisplayValue(booking.guestName) && booking.bookedBy && (
                         <div className="flex flex-col items-end gap-1 mt-1">
@@ -115,12 +99,6 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                 <Phone size={14} />
                                 Call Agent
                             </a>
-                        </div>
-                    )}
-
-                    {hasBalance && (
-                        <div className="text-[8px] font-black text-amber-500 uppercase tracking-tighter mt-1">
-                            Pending {formatCurrency(booking.paymentSummary?.totalDue || 0, booking.currency)}
                         </div>
                     )}
                 </div>
@@ -163,15 +141,6 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         {formatCurrency(commission, booking.currency)}
                     </span>
                 </div>
-            )}
-
-            {isValidDisplayValue(booking.guestName) && (
-                <button
-                    onClick={onSelect}
-                    className="mt-4 w-full py-2 bg-slate-50 rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-100 transition-colors"
-                >
-                    View Transhistory & Invoice
-                </button>
             )}
         </div>
     );

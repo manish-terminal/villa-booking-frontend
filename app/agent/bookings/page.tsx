@@ -26,7 +26,7 @@ function AgentBookingsContent() {
     const [occupiedRanges, setOccupiedRanges] = useState<OccupiedRange[]>([]);
     const [loading, setLoading] = useState(true);
     const [calendarLoading, setCalendarLoading] = useState(false);
-    const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+    const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar");
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
     // Selection state for Calendar
@@ -169,15 +169,6 @@ function AgentBookingsContent() {
                     {/* View Toggle */}
                     <div className="bg-[var(--input-bg)] p-1 rounded-2xl flex items-center shadow-inner border border-[var(--glass-border)]">
                         <button
-                            onClick={() => setViewMode("list")}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${viewMode === "list"
-                                ? "bg-[var(--foreground)] text-[var(--background)] shadow-lg"
-                                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
-                                }`}
-                        >
-                            <List size={16} /> List
-                        </button>
-                        <button
                             onClick={() => setViewMode("calendar")}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${viewMode === "calendar"
                                 ? "bg-[var(--foreground)] text-[var(--background)] shadow-lg"
@@ -185,6 +176,15 @@ function AgentBookingsContent() {
                                 }`}
                         >
                             <CalendarIcon size={16} /> Calendar
+                        </button>
+                        <button
+                            onClick={() => setViewMode("list")}
+                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${viewMode === "list"
+                                ? "bg-[var(--foreground)] text-[var(--background)] shadow-lg"
+                                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                                }`}
+                        >
+                            <List size={16} /> List
                         </button>
                     </div>
 

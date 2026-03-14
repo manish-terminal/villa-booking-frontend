@@ -73,6 +73,8 @@ export interface OccupiedRange {
     checkOut: string; // ISO string
     status: "pending_confirmation" | "confirmed" | "checked_in" | "checked_out" | "cancelled" | "no_show" | "partial" | "settled";
     guestName?: string; // Only for owners/admins
+    isMine?: boolean; // True if created by current user
+    createdByName?: string; // Name of the creator
 }
 
 export interface PropertyCalendarResponse {
@@ -108,6 +110,7 @@ export interface Booking {
     agentCommission: number;
     currency: string;
     status: string;
+    isMine?: boolean; // True if created by current user
     bookedBy: string; // Agent Phone
     bookedByName?: string; // Agent Name
     advanceMethod?: string;

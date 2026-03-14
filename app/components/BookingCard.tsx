@@ -51,13 +51,15 @@ const BookingCard: React.FC<BookingCardProps> = ({
     commission
 }) => {
     const hasBalance = booking.paymentSummary && booking.paymentSummary.totalDue > 0;
+    const isMine = booking.isMine ?? true; // Default to true if not provided (for backward compatibility or owner view)
 
     return (
         <div
-            className={`bg-white rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden pl-6 pr-6 py-6 ${isHistory ? 'opacity-70' : ''}`}
+            className={`rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden pl-6 pr-6 py-6 transition-all ${isHistory ? 'opacity-70' : ''
+                } ${isMine ? 'bg-emerald-50/50' : 'bg-slate-50'}`}
         >
             {/* Side Accent Bar */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-[2rem] ${isHistory ? 'bg-slate-200' : 'bg-[#0D7A6B]'}`}></div>
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-[2rem] ${isHistory ? 'bg-slate-200' : isMine ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
 
             <div className="flex justify-between items-start mb-1">
                 <div>

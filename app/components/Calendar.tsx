@@ -43,6 +43,11 @@ export default function Calendar({
 }: CalendarProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
+    // VERY LOUD LOG FOR DEBUGGING
+    useMemo(() => {
+        console.error("DEBUG: Calendar Component active. Ranges:", occupiedRanges.length, "Props:", { isOwner, hasOnBookingClick: !!onBookingClick });
+    }, [occupiedRanges, isOwner, onBookingClick]);
+
     const days = useMemo(() => {
         const monthStart = startOfMonth(currentMonth);
         const monthEnd = endOfMonth(monthStart);
@@ -55,15 +60,25 @@ export default function Calendar({
         });
     }, [currentMonth]);
 
+    const isClickable = (occ: OccupiedRange) => {
+        const bId = occ.bookingId || (occ as any).id;
+        const clickable = !!(bId && isOwner && onBookingClick && occ.guestName && occ.guestName !== '***');
+
+        // VERY NOISY LOG FOR EVERY OCCUPIED DOT
+        console.warn(`[DEBUG] Day ${occ.checkIn}: Clickable=${clickable}`, {
+            bId, isOwner, guest: occ.guestName, hasHandler: !!onBookingClick
+        });
+
+        return clickable;
+    };
+
     const handleDateClick = (day: Date) => {
         const occupied = getOccupiedStatus(day);
         if (occupied) {
-            // Priority 1: Open details if we have an ID
-            const bId = occupied.bookingId || ('id' in occupied ? (occupied as { id?: string }).id : undefined);
-            if (bId && isOwner && onBookingClick) {
-                onBookingClick(bId);
+            if (isClickable(occupied)) {
+                const bId = occupied.bookingId || ('id' in occupied ? (occupied as { id?: string }).id : undefined);
+                onBookingClick!(bId!);
             }
-            // Always return if occupied to prevent "Check-in" selection state
             return;
         }
 
@@ -183,7 +198,7 @@ export default function Calendar({
                                 <div
                                     className={`
                                         absolute inset-x-2 bottom-3 h-1.5 rounded-full shadow-sm pointer-events-none
-                                        bg-emerald-500
+                                        ${isClickable(occupied) ? "bg-emerald-500" : "bg-orange-400"}
                                     `}
                                 />
                             )}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { format, addYears } from "date-fns";
+import { format, addYears, subYears } from "date-fns";
 import { api } from "@/app/lib/api";
 import { Booking, Property, OccupiedRange } from "@/app/types/property";
 import { APIError } from "@/app/types/auth";
@@ -80,7 +80,7 @@ function AgentBookingsContent() {
         const fetchData = async () => {
             setCalendarLoading(true);
             try {
-                const startDateStr = format(new Date(), 'yyyy-MM-dd');
+                const startDateStr = format(subYears(new Date(), 1), 'yyyy-MM-dd');
                 const endDateStr = format(addYears(new Date(), 1), 'yyyy-MM-dd');
                 const [bookingsRes, calendarRes] = await Promise.all([
                     api.getBookings(selectedPropertyId, startDateStr, endDateStr),
@@ -117,7 +117,7 @@ function AgentBookingsContent() {
     const handleRefresh = async () => {
         if (!selectedPropertyId) return;
         try {
-            const startDateStr = format(new Date(), 'yyyy-MM-dd');
+            const startDateStr = format(subYears(new Date(), 1), 'yyyy-MM-dd');
             const endDateStr = format(addYears(new Date(), 1), 'yyyy-MM-dd');
             const [bookingsRes, calendarRes] = await Promise.all([
                 api.getBookings(selectedPropertyId, startDateStr, endDateStr),

@@ -11,7 +11,8 @@ import {
     ResponsiveContainer,
     Cell,
 } from "recharts";
-import { Calendar } from "lucide-react";
+import { Calendar as LucideCalendar } from "lucide-react";
+import { Calendar as PrimeCalendar } from 'primereact/calendar';
 import { api } from "@/app/lib/api";
 import { OwnerAnalytics } from "@/app/types/analytics";
 import { APIError } from "@/app/types/auth";
@@ -107,27 +108,24 @@ export default function OwnerAnalyticsPage() {
 
                 {/* Calendar Input */}
                 <div className="flex items-center gap-2 mt-4">
-                    <div className="flex items-center gap-2 p-2 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
-                        <div className="flex items-center px-3 gap-2">
-                            <Calendar size={14} className="text-slate-400" />
-                            <input
-                                type="month"
-                                value={dateRange.startDate.slice(0, 7)}
+                    <div className="flex items-center gap-2 p-1 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                        <div className="flex items-center px-4 gap-2">
+                            <LucideCalendar size={14} className="text-slate-400" />
+                            <PrimeCalendar
+                                value={new Date(dateRange.startDate)}
                                 onChange={(e) => {
-                                    if (!e.target.value) return;
-                                    const [y, m] = e.target.value.split('-').map(Number);
-                                    const start = getLocalISO(new Date(y, m - 1, 1));
-                                    const end = getLocalISO(new Date(y, m, 0));
-                                    // Removed the currentEndDate logic to match simply setting the whole month range
-                                    // as usually expected in monthly analytics, or keep consistent with agent analytics logic?
-                                    // Agent analytics logic:
-                                    // const currentEndDate = new Date() < new Date(y, m, 0) ? getLocalISO(new Date()) : end;
-                                    // Actually, let's keep it simple: whole month. The backend should handle future dates effectively (empty data).
-                                    // But to be exactly like Agent Analytics:
-                                    const currentEndDate = new Date() < new Date(y, m, 0) ? getLocalISO(new Date()) : end;
-                                    setDateRange({ startDate: start, endDate: currentEndDate });
+                                    const date = e.value as Date;
+                                    if (!date) return;
+                                    const y = date.getFullYear();
+                                    const m = date.getMonth();
+                                    const start = getLocalISO(new Date(y, m, 1));
+                                    const end = getLocalISO(new Date(y, m + 1, 0));
+                                    setDateRange({ startDate: start, endDate: end });
                                 }}
-                                className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none cursor-pointer min-w-[100px]"
+                                view="month"
+                                dateFormat="mm/yy"
+                                inputClassName="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none cursor-pointer min-w-[80px] p-0 text-center"
+                                className="border-none"
                             />
                         </div>
                     </div>

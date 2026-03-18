@@ -3,6 +3,12 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "./components/Toast";
 import PWAInit from "./components/PWAInit";
+import { PrimeReactProvider } from 'primereact/api';
+
+// PrimeReact CSS
+import "primereact/resources/themes/lara-light-blue/theme.css";
+import "primereact/resources/primereact.min.css";
+import "primeicons/primeicons.css";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -42,10 +48,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased`}>
-        <ToastProvider>
-          {children}
-          <PWAInit />
-        </ToastProvider>
+        <PrimeReactProvider>
+          <ToastProvider>
+            {children}
+            <PWAInit />
+          </ToastProvider>
+        </PrimeReactProvider>
       </body>
     </html>
   );

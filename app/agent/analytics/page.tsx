@@ -6,8 +6,9 @@ import { AgentAnalytics, PropertyPerformance } from "@/app/types/analytics";
 import { APIError } from "@/app/types/auth";
 import { useToast } from "@/app/components/Toast";
 import {
-    Calendar,
+    Calendar as LucideCalendar,
 } from "lucide-react";
+import { Calendar as PrimeCalendar } from 'primereact/calendar';
 import SummaryCards from "@/app/components/SummaryCards";
 import CommissionChart from "@/app/components/CommissionChart";
 
@@ -82,20 +83,24 @@ export default function AgentAnalyticsPage() {
                     <p className="text-slate-400 text-sm font-medium">Detailed breakdown of your earnings and performance</p>
                 </div>
 
-                <div className="flex items-center gap-2 p-2 bg-white border border-slate-100 rounded-[2rem] shadow-sm self-start lg:self-auto">
-                    <div className="flex items-center px-3 gap-2">
-                        <Calendar size={14} className="text-slate-400" />
-                        <input
-                            type="month"
-                            value={dateRange.startDate.slice(0, 7)}
+                <div className="flex items-center gap-2 p-1 bg-white border border-slate-100 rounded-[2rem] shadow-sm self-start lg:self-auto">
+                    <div className="flex items-center px-4 gap-2">
+                        <LucideCalendar size={14} className="text-slate-400" />
+                        <PrimeCalendar
+                            value={new Date(dateRange.startDate)}
                             onChange={(e) => {
-                                if (!e.target.value) return;
-                                const [y, m] = e.target.value.split('-').map(Number);
-                                const start = getLocalISO(new Date(y, m - 1, 1));
-                                const end = getLocalISO(new Date(y, m, 0));
+                                const date = e.value as Date;
+                                if (!date) return;
+                                const y = date.getFullYear();
+                                const m = date.getMonth();
+                                const start = getLocalISO(new Date(y, m, 1));
+                                const end = getLocalISO(new Date(y, m + 1, 0));
                                 setDateRange({ startDate: start, endDate: end });
                             }}
-                            className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none cursor-pointer min-w-[100px]"
+                            view="month"
+                            dateFormat="mm/yy"
+                            inputClassName="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none cursor-pointer min-w-[80px] p-0 text-center"
+                            className="border-none"
                         />
                     </div>
                 </div>

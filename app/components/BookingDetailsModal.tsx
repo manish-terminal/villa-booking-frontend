@@ -4,13 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import {
   X,
+  XCircle,
   Calendar,
-
   Phone,
   Mail,
   ReceiptIndianRupee,
   PencilLine,
-  Trash2,
   Check
 } from "lucide-react";
 import { api } from "@/app/lib/api";
@@ -48,20 +47,21 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
 
   // Removed unused handleStatusUpdate and handleSettle functions
 
-  const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to permanently delete this booking? This action cannot be undone.")) {
+
+  const handleCancel = async () => {
+    if (!window.confirm("Are you sure you want to cancel this booking? The dates will be released.")) {
       return;
     }
 
     setLoading(true);
     try {
-      await api.deleteBooking(booking.id);
-      showToast("Booking deleted successfully", "success");
+      await api.updateBookingStatus(booking.id, "cancelled");
+      showToast("Booking cancelled successfully", "success");
       onUpdate();
       onClose();
     } catch (err: unknown) {
       const apiError = err as APIError;
-      showToast(apiError.error || "Failed to delete booking", "error");
+      showToast(apiError.error || "Failed to cancel booking", "error");
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
                 <X size={20} />
               </button>
               <div className="flex gap-3">
-                {onEdit && (
+                {onEdit && booking.status !== "cancelled" && (
                   <button
                     onClick={() => onEdit(booking)}
                     className="h-12 px-6 rounded-2xl bg-[#0F172A] text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-900/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
@@ -119,12 +119,14 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
                     <PencilLine size={16} /> Edit
                   </button>
                 )}
-                <button
-                  onClick={handleDelete}
-                  className="w-12 h-12 flex items-center justify-center rounded-2xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-all border border-rose-100 active:scale-90"
-                >
-                  <Trash2 size={20} />
-                </button>
+                {booking.status !== "cancelled" && (
+                  <button
+                    onClick={handleCancel}
+                    className="h-12 px-6 rounded-2xl bg-amber-50 text-amber-600 font-black text-[10px] uppercase tracking-widest border border-amber-100 hover:bg-amber-100 active:scale-95 transition-all flex items-center gap-2"
+                  >
+                    <XCircle size={18} /> Cancel
+                  </button>
+                )}
               </div>
             </div>
 
@@ -281,6 +283,8 @@ const getStatusStyleSimplified = (status: string) => {
     return 'bg-gradient-to-r from-emerald-500 to-green-600 shadow-[0_5px_15px_rgba(16,185,129,0.2)]';
   } else if (s === 'partial') {
     return 'bg-gradient-to-r from-sky-500 to-blue-600 shadow-[0_5px_15px_rgba(56,189,248,0.2)]';
+  } else if (s === 'cancelled') {
+    return 'bg-gradient-to-r from-slate-400 to-slate-500 shadow-[0_5px_15px_rgba(148,163,184,0.2)]';
   }
   return 'bg-gradient-to-r from-amber-500 to-yellow-600 shadow-[0_5px_15px_rgba(245,158,11,0.2)]';
 };
@@ -291,6 +295,8 @@ const getStatusTextSimplified = (status: string) => {
     return 'Settled';
   } else if (s === 'partial') {
     return 'Partial';
+  } else if (s === 'cancelled') {
+    return 'Cancelled';
   }
   return 'Pending';
 };

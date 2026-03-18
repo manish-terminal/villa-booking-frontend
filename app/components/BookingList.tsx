@@ -21,9 +21,10 @@ interface BookingListProps {
     bookings: BookingWithPayment[];
     onSelectBooking: (booking: Booking) => void;
     onEditBooking?: (booking: Booking) => void;
+    isOwnerView?: boolean;
 }
 
-export default function BookingList({ bookings, onSelectBooking, onEditBooking }: BookingListProps) {
+export default function BookingList({ bookings, onSelectBooking, onEditBooking, isOwnerView = false }: BookingListProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
 
@@ -33,6 +34,7 @@ export default function BookingList({ bookings, onSelectBooking, onEditBooking }
 
         const matchesSearch =
             booking.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (booking.bookedByName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
             booking.guestPhone.includes(searchTerm) ||
             booking.id.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -41,16 +43,18 @@ export default function BookingList({ bookings, onSelectBooking, onEditBooking }
         return matchesSearch && matchesStatus;
     });
 
-    const getStatusStyles = (status: string) => {
-        const s = status.toLowerCase();
+    const getStatusStyles = (statusName: string) => {
+        const s = statusName.toLowerCase();
         if (s === 'settled' || s === 'confirmed' || s === 'completed' || s === 'checked_in' || s === 'checked_out') {
             return { icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10", label: "Settled" };
         } else if (s === 'partial') {
             return { icon: ExternalLink, color: "text-blue-500", bg: "bg-blue-500/10", label: "Partial" };
         } else if (s === 'pending' || s === 'pending_confirmation' || s === 'due') {
             return { icon: Clock, color: "text-orange-500", bg: "bg-orange-500/10", label: "Pending" };
+        } else if (s === 'cancelled') {
+            return { icon: ExternalLink, color: "text-slate-500", bg: "bg-slate-500/10", label: "Cancelled" };
         }
-        return { icon: Clock, color: "text-[var(--foreground-muted)]", bg: "bg-[var(--input-bg)]", label: status.toUpperCase() };
+        return { icon: Clock, color: "text-[var(--foreground-muted)]", bg: "bg-[var(--input-bg)]", label: statusName.toUpperCase() };
     };
 
     return (
@@ -102,7 +106,7 @@ export default function BookingList({ bookings, onSelectBooking, onEditBooking }
                 ) : (
                     filteredBookings.map((booking) => {
                         const displayStatus = booking.paymentSummary?.status || booking.status;
-                        const status = getStatusStyles(displayStatus);
+                        const statusStyle = getStatusStyles(displayStatus);
                         return (
                             <div
                                 key={booking.id}
@@ -118,27 +122,41 @@ export default function BookingList({ bookings, onSelectBooking, onEditBooking }
                                         <span className="text-[9px] font-black text-[var(--foreground-muted)] uppercase tracking-[0.2em] opacity-40">
                                             #{booking.id.slice(-8)}
                                         </span>
-                                        <div className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${status.bg} ${status.color}`}>
-                                            <status.icon size={10} />
-                                            {status.label}
+                                        <div className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${statusStyle.bg} ${statusStyle.color}`}>
+                                            <statusStyle.icon size={10} />
+                                            {statusStyle.label}
                                         </div>
                                     </div>
 
-                                    {/* Guest Identity */}
+                                    {/* Guest/Agent Identity */}
                                     <div className="flex items-start gap-4">
                                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--input-bg)] to-[var(--input-bg)]/50 text-[var(--primary)] flex items-center justify-center font-serif text-3xl shadow-lg shadow-[var(--primary)]/5 group-hover:scale-105 transition-transform duration-500 relative overflow-hidden">
-                                            <span className="relative z-10">{(isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest").charAt(0)}</span>
+                                            <span className="relative z-10">
+                                                {isOwnerView
+                                                    ? (booking.bookedByName || "Agent").charAt(0)
+                                                    : (isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest").charAt(0)
+                                                }
+                                            </span>
                                             <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </div>
                                         <div className="flex-1 min-w-0 pt-1">
                                             <h4 className="text-2xl font-serif text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors leading-tight">
-                                                {isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest"}
+                                                {isOwnerView
+                                                    ? (booking.bookedByName || "Agent")
+                                                    : (isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest")
+                                                }
                                             </h4>
-                                            {isValidDisplayValue(booking.guestPhone) && (
+                                            {isOwnerView ? (
                                                 <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest mt-1 flex items-center gap-2">
-                                                    <Phone size={10} className="text-[var(--secondary)]" />
-                                                    {booking.guestPhone}
+                                                    Guest: {isValidDisplayValue(booking.guestName) ? booking.guestName : "Unknown"}
                                                 </p>
+                                            ) : (
+                                                isValidDisplayValue(booking.guestPhone) && (
+                                                    <p className="text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-widest mt-1 flex items-center gap-2">
+                                                        <Phone size={10} className="text-[var(--secondary)]" />
+                                                        {booking.guestPhone}
+                                                    </p>
+                                                )
                                             )}
                                         </div>
                                     </div>

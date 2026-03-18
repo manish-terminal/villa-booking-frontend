@@ -14,6 +14,7 @@ interface BookingCardProps {
     isHistory?: boolean;
     onSelect: () => void;
     commission?: number;
+    isOwnerView?: boolean;
 }
 
 const getStatusText = (status: string) => {
@@ -24,6 +25,8 @@ const getStatusText = (status: string) => {
         return 'PARTIAL';
     } else if (statusLower === 'pending' || statusLower === 'pending_confirmation' || statusLower === 'due') {
         return 'PENDING';
+    } else if (statusLower === 'cancelled') {
+        return 'CANCELLED';
     }
     return status.toUpperCase();
 };
@@ -36,6 +39,8 @@ const getStatusStyle = (status: string) => {
         return 'bg-blue-50 text-blue-700';
     } else if (statusLower === 'pending' || statusLower === 'pending_confirmation' || statusLower === 'due') {
         return 'bg-amber-50 text-amber-700';
+    } else if (statusLower === 'cancelled') {
+        return 'bg-slate-100 text-slate-600';
     }
     return 'bg-slate-50 text-slate-500';
 };
@@ -46,10 +51,15 @@ const BookingCard: React.FC<BookingCardProps> = ({
     formatCurrency,
     isHistory,
     onSelect,
-    commission
+    commission,
+    isOwnerView = false
 }) => {
     const hasBalance = booking.paymentSummary && booking.paymentSummary.totalDue > 0;
     const isMine = booking.isMine ?? true; // Default to true if not provided (for backward compatibility or owner view)
+
+    const primaryName = isOwnerView
+        ? (booking.bookedByName || "Agent")
+        : (isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest");
 
     return (
         <div
@@ -63,13 +73,16 @@ const BookingCard: React.FC<BookingCardProps> = ({
             <div className="flex justify-between items-start mb-1">
                 <div>
                     <h4 className="font-bold text-slate-900 text-lg leading-tight">
-                        {isValidDisplayValue(booking.guestName) ? booking.guestName : "Guest"}
+                        {primaryName}
                     </h4>
                     <p className="text-[14px] text-slate-400 font-medium mt-1">
                         {formatDate(booking.checkIn)} — {formatDate(booking.checkOut)}
                     </p>
                     <p className="text-[10px] text-[#0D7A6B] font-bold uppercase tracking-wider mt-1">
-                        {booking.propertyName}
+                        {isOwnerView
+                            ? `${booking.propertyName} | Guest: ${isValidDisplayValue(booking.guestName) ? booking.guestName : "Unknown"}`
+                            : booking.propertyName
+                        }
                     </p>
                 </div>
 
@@ -77,8 +90,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
                     <div className={`text-[10px] font-black px-3 py-1 rounded-full ${getStatusStyle(booking.paymentSummary?.status || booking.status)}`}>
                         {getStatusText(booking.paymentSummary?.status || booking.status)}
                     </div>
-                    {/* Aggressive Agent Display for Masked Bookings */}
-                    {!isValidDisplayValue(booking.guestName) && booking.bookedBy && (
+                    {/* Aggressive Agent Display for Masked Bookings - ONLY show managed by if NOT in owner view */}
+                    {!isOwnerView && !isValidDisplayValue(booking.guestName) && booking.bookedBy && (
                         <div className="flex flex-col items-end gap-1 mt-1">
                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
                                 Managed by <span className="text-slate-900">{booking.bookedByName || "Agent"}</span>
@@ -115,7 +128,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                 </div>
                 <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        Paid
+                        Advance
                     </span>
                     <span className="text-base font-black text-[#0D7A6B]">
                         {formatCurrency(booking.paymentSummary?.totalPaid || 0, booking.currency)}

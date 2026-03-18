@@ -371,6 +371,7 @@ export default function BookingsPage() {
                                 bookings={bookings}
                                 onSelectBooking={setSelectedBooking}
                                 onEditBooking={setEditingBooking}
+                                isOwnerView={true}
                             />
                         ) : (
                             <div className="bg-white p-12 rounded-[2rem] border border-slate-50 flex flex-col items-center justify-center text-slate-300">

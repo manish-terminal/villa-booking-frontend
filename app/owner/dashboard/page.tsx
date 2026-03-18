@@ -233,6 +233,7 @@ const OwnerHomePage: React.FC = () => {
                                         formatDate={formatDate}
                                         formatCurrency={formatCurrency}
                                         onSelect={() => setSelectedBooking(booking)}
+                                        isOwnerView={true}
                                     />
                                 ))}
                             </div>
@@ -261,6 +262,7 @@ const OwnerHomePage: React.FC = () => {
                                         formatCurrency={formatCurrency}
                                         isHistory
                                         onSelect={() => setSelectedBooking(booking)}
+                                        isOwnerView={true}
                                     />
                                 ))}
 

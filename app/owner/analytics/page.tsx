@@ -54,6 +54,7 @@ export default function OwnerAnalyticsPage() {
     const [analytics, setAnalytics] = useState<OwnerAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedPropertyId, setSelectedPropertyId] = useState<string>("all");
 
     // Default date boundaries
     const today = new Date();
@@ -83,18 +84,47 @@ export default function OwnerAnalyticsPage() {
         fetchAnalytics();
     }, [fetchAnalytics]);
 
-    // Prepare chart data
-    const data = analytics?.propertyStats.map(v => ({
-        name: v.propertyName.split(' ')[1] || v.propertyName,
-        revenue: v.totalRevenue
-    })) || [];
+    // Prepare stats based on selection
+    const displayStats = (() => {
+        if (!analytics) return null;
+        if (selectedPropertyId === "all") {
+            return {
+                totalRevenue: analytics.totalRevenue,
+                totalCollected: analytics.totalCollected,
+                totalPending: analytics.totalPending,
+                totalBookings: analytics.totalBookings,
+                averagePrice: analytics.averagePrice || 0,
+                occupancyDays: analytics.propertyStats.reduce((sum, p) => sum + (p.occupancyDays || 0), 0),
+                propertyCount: analytics.totalProperties
+            };
+        }
+        const prop = analytics.propertyStats.find(p => p.propertyId === selectedPropertyId);
+        if (!prop) return null;
+        return {
+            totalRevenue: prop.totalRevenue,
+            totalCollected: prop.totalCollected,
+            totalPending: prop.totalRevenue - prop.totalCollected,
+            totalBookings: prop.totalBookings,
+            averagePrice: prop.averagePrice || (prop.occupancyDays > 0 ? prop.totalRevenue / prop.occupancyDays : 0),
+            occupancyDays: prop.occupancyDays,
+            propertyCount: 1
+        };
+    })();
 
-    // Calculate average occupancy rate (simplified calculation)
-    const avgOccupancyRate = analytics?.propertyStats.length
-        ? Math.round(
-            analytics.propertyStats.reduce((sum, p) => sum + (p.occupancyDays || 0), 0) /
-            analytics.propertyStats.length / 30 * 100
-        ) : 0; // Default fallback
+    // Prepare chart data
+    const chartData = (analytics?.propertyStats || [])
+        .filter(v => selectedPropertyId === "all" || v.propertyId === selectedPropertyId)
+        .map(v => ({
+            id: v.propertyId,
+            name: v.propertyName.split(' ')[1] || v.propertyName,
+            revenue: v.totalRevenue,
+            isSelected: v.propertyId === selectedPropertyId
+        }));
+
+    // Calculate average occupancy rate
+    const avgOccupancyRate = displayStats
+        ? Math.round((displayStats.occupancyDays / (displayStats.propertyCount * 30.5)) * 100)
+        : 0;
 
     return (
         <div className="pb-32">
@@ -106,9 +136,10 @@ export default function OwnerAnalyticsPage() {
                     </div>
                 </div>
 
-                {/* Calendar Input */}
-                <div className="flex items-center gap-2 mt-4">
-                    <div className="flex items-center gap-2 p-1 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                {/* Filters Row */}
+                <div className="flex flex-wrap items-center gap-3 mt-4">
+                    {/* Month Picker */}
+                    <div className="flex items-center gap-2 p-1.5 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
                         <div className="flex items-center px-4 gap-2">
                             <LucideCalendar size={14} className="text-slate-400" />
                             <PrimeCalendar
@@ -129,6 +160,29 @@ export default function OwnerAnalyticsPage() {
                             />
                         </div>
                     </div>
+
+                    {/* Property Selector */}
+                    {analytics && analytics.propertyStats.length > 0 && (
+                        <div className="relative">
+                            <select
+                                value={selectedPropertyId}
+                                onChange={(e) => setSelectedPropertyId(e.target.value)}
+                                className="appearance-none bg-white border border-slate-100 rounded-[2rem] px-6 py-2.5 pr-10 text-[10px] font-black uppercase tracking-widest text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-[#0D7A6B]/20 transition-all cursor-pointer"
+                            >
+                                <option value="all">All Properties</option>
+                                {analytics.propertyStats.map(p => (
+                                    <option key={p.propertyId} value={p.propertyId}>
+                                        {p.propertyName}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -153,7 +207,7 @@ export default function OwnerAnalyticsPage() {
                         <h3 className="text-lg font-bold text-slate-900 mb-6">Revenue by Property</h3>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={data}>
+                                <BarChart data={chartData}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                     <XAxis
                                         dataKey="name"
@@ -176,8 +230,12 @@ export default function OwnerAnalyticsPage() {
                                         formatter={(value) => formatCurrency(value as number, analytics.currency)}
                                     />
                                     <Bar dataKey="revenue" radius={[6, 6, 0, 0]}>
-                                        {data.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        {chartData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.isSelected ? '#10B981' : COLORS[index % COLORS.length]}
+                                                fillOpacity={selectedPropertyId === 'all' || entry.isSelected ? 1 : 0.3}
+                                            />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -194,9 +252,9 @@ export default function OwnerAnalyticsPage() {
                                 </svg>
                             </div>
                             <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Collected</p>
-                            <h4 className="text-xl font-black text-slate-900">{formatCurrency(analytics.totalCollected, analytics.currency)}</h4>
-
+                            <h4 className="text-xl font-black text-slate-900">{formatCurrency(displayStats?.totalCollected || 0, analytics.currency)}</h4>
                         </div>
+
                         <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-sm">
                             <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mb-3">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -204,8 +262,27 @@ export default function OwnerAnalyticsPage() {
                                 </svg>
                             </div>
                             <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Pending</p>
-                            <h4 className="text-xl font-black text-slate-900">{formatCurrency(analytics.totalPending, analytics.currency)}</h4>
+                            <h4 className="text-xl font-black text-slate-900">{formatCurrency(displayStats?.totalPending || 0, analytics.currency)}</h4>
+                        </div>
 
+                        <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-sm">
+                            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider">ADR (Avg Day Rate)</p>
+                            <h4 className="text-xl font-black text-slate-900">{formatCurrency(displayStats?.averagePrice || 0, analytics.currency)}</h4>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-sm">
+                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-3">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Bookings</p>
+                            <h4 className="text-xl font-black text-slate-900">{displayStats?.totalBookings || 0}</h4>
                         </div>
                     </div>
 

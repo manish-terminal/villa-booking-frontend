@@ -7,6 +7,7 @@ export interface PropertyStats {
     totalRevenue: number;
     totalCollected: number;
     occupancyDays: number;
+    averagePrice?: number; // ADR for this specific villa
 }
 
 export interface OwnerAnalytics {
@@ -17,17 +18,10 @@ export interface OwnerAnalytics {
     totalRevenue: number;
     totalCollected: number;
     totalPending: number;
+    averagePrice?: number; // Portfolio ADR
     currency: string;
-    bookingsByStatus: {
-        confirmed: number;
-        pending_confirmation: number;
-        checked_out: number;
-    };
-    paymentsByStatus: {
-        completed: number;
-        due: number;
-        pending: number;
-    };
+    bookingsByStatus: Record<string, number>;
+    paymentsByStatus: Record<string, number>;
     propertyStats: PropertyStats[];
     periodStart: string;
     periodEnd: string;

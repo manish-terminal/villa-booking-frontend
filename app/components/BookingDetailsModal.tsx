@@ -198,7 +198,7 @@ export default function BookingDetailsModal({ booking, onClose, onUpdate, onEdit
 
               <div className="grid grid-cols-2 gap-8 border-t border-slate-50 pt-8">
                 <div>
-                  <p className="text-[10px] font-black text-emerald-600/50 uppercase tracking-widest mb-1">Paid Amount</p>
+                  <p className="text-[10px] font-black text-emerald-600/50 uppercase tracking-widest mb-1">Advance Collected</p>
                   <p className="text-xl font-black text-emerald-600">₹{paymentSummary?.totalPaid.toLocaleString() || "0"}</p>
                 </div>
                 <div className="text-right">

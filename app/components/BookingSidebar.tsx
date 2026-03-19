@@ -379,7 +379,7 @@ export default function BookingSidebar({
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Price / Night</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Owner's Earning</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
                                     <input

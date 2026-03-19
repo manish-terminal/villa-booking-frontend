@@ -362,7 +362,7 @@ export default function AgentBookingSidebar({
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Price / Night</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Owner's Earning</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
                                     <input
@@ -384,7 +384,7 @@ export default function AgentBookingSidebar({
                         {/* Commission Field - Added for Agent Flow */}
                         <div>
                             <label className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-2 block flex items-center gap-1.5">
-                                <Coins size={12} /> My Commission
+                                <Coins size={12} /> My Earnings   (Only visible to you)
                             </label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-emerald-500">₹</span>
@@ -397,7 +397,7 @@ export default function AgentBookingSidebar({
                             </div>
                         </div>
                                      <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Advance Payment (if taken,please enter)</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Advance to Owner (if any)</label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
                                 <input
@@ -432,13 +432,13 @@ export default function AgentBookingSidebar({
                         )}
 
                         <div className="bg-[#0D7A6B] text-white p-4 rounded-xl">
-                            <label className="text-[10px] font-bold text-white/70 uppercase tracking-wider mb-2 block">Total Amount</label>
+                            <label className="text-[10px] font-bold text-white/70 uppercase tracking-wider mb-2 block">Total Amount (Only visible to you)</label>
                             <div className="relative">
                                 <span className="absolute left-0 top-1/2 -translate-y-1/2 text-lg font-black">₹</span>
                                 <input
                                     type="number"
                                     className="w-full bg-transparent pl-6 py-1 text-2xl font-black outline-none"
-                                    value={formData.totalAmount || ""}
+                                    value={formData.totalAmount+formData.agentCommission || ""}
                                     onChange={(e) => handleNumberChange("totalAmount", e.target.value)}
                                 />
                             </div>
@@ -487,7 +487,7 @@ export default function AgentBookingSidebar({
                             )}
                             <div className="flex justify-between items-center border-t border-[#0D7A6B]/10 pt-2 mt-2">
                                 <span className="text-xs font-bold text-[#0D7A6B]">Total Amount</span>
-                                <span className="text-lg font-black text-[#0D7A6B]">{formatCurrency(formData.totalAmount)}</span>
+                                <span className="text-lg font-black text-[#0D7A6B]">{formatCurrency(formData.totalAmount+formData.agentCommission)}</span>
                             </div>
 
                             {formData.advancePayment > 0 && (
@@ -500,7 +500,7 @@ export default function AgentBookingSidebar({
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs text-amber-600">Balance Due</span>
-                                        <span className="text-sm font-bold text-amber-600">{formatCurrency(formData.totalAmount - formData.advancePayment)}</span>
+                                        <span className="text-sm font-bold text-amber-600">{formatCurrency(formData.totalAmount+formData.agentCommission - formData.advancePayment)}</span>
                                     </div>
                                 </>
                             )}

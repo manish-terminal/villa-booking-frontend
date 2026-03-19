@@ -148,7 +148,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
             {commission !== undefined && commission > 0 && (
                 <div className="mt-4 pt-4 border-t border-slate-50/50 flex justify-between items-center bg-indigo-50/30 rounded-xl px-3 py-2">
                     <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
-                        My Commission
+                        My Commission(Only visible to you)
                     </span>
                     <span className="text-sm font-black text-indigo-600">
                         {formatCurrency(commission, booking.currency)}

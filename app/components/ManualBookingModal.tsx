@@ -181,7 +181,7 @@ export default function ManualBookingModal({ property, onClose, onSuccess }: Man
                         <div className="p-6 rounded-3xl bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary)]/20 space-y-6">
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block">Price / Night</label>
+                                    <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1 mb-1.5 block">Owner's Earning</label>
                                     <div className="relative">
                                         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-black">₹</span>
                                         <input

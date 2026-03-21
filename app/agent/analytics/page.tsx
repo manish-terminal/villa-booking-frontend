@@ -7,10 +7,15 @@ import { APIError } from "@/app/types/auth";
 import { useToast } from "@/app/components/Toast";
 import {
     Calendar as LucideCalendar,
+    ChevronDown,
+    Diamond
 } from "lucide-react";
 import { Calendar as PrimeCalendar } from 'primereact/calendar';
-import SummaryCards from "@/app/components/SummaryCards";
-import CommissionChart from "@/app/components/CommissionChart";
+import AnalyticsSummaryCards from "@/app/components/AnalyticsSummaryCards";
+import RevenueCommissionLineChart from "@/app/components/RevenueCommissionLineChart";
+import TopPerformingVillasChart from "@/app/components/TopPerformingVillasChart";
+import VolumeCards from "@/app/components/VolumeCards";
+import VillaEarningTable from "@/app/components/VillaEarningTable";
 
 // --- Date Helpers ---
 const getLocalISO = (date: Date) => {
@@ -21,7 +26,6 @@ const getLocalISO = (date: Date) => {
 
 export default function AgentAnalyticsPage() {
     const { showToast } = useToast();
-
 
     // Default date boundaries
     const today = new Date();
@@ -39,11 +43,11 @@ export default function AgentAnalyticsPage() {
         if (!isRefresh) setLoading(true);
 
         try {
-            // Fetch Summary Analytics & Performance
             const [analyticsData, perfResponse] = await Promise.all([
                 api.getAgentAnalytics(dateRange.startDate, dateRange.endDate),
                 api.getAgentPropertyPerformance(dateRange.startDate, dateRange.endDate)
             ]);
+
             setAnalytics(analyticsData);
             setPerformanceData(perfResponse.data || []);
             setError(null);
@@ -56,91 +60,134 @@ export default function AgentAnalyticsPage() {
         }
     }, [showToast, dateRange]);
 
+
     useEffect(() => {
         fetchAnalytics();
     }, [fetchAnalytics]);
 
     if (loading) return (
-        <div className="animate-pulse space-y-6 max-w-7xl mx-auto p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
-                {[1, 2, 3, 4].map(i => <div key={i} className="bg-white/50 rounded-[2rem] h-32"></div>)}
+        <div className="animate-pulse space-y-6 max-w-7xl mx-auto p-8">
+            <div className="h-10 w-64 bg-slate-200 rounded-lg mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => <div key={i} className="bg-white rounded-[2rem] h-40"></div>)}
             </div>
-            <div className="px-4">
-                <div className="bg-white/50 rounded-[2rem] h-96"></div>
-            </div>
+            <div className="bg-white rounded-[2rem] h-96"></div>
         </div>
     );
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20 px-1 pt-4">
+        <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700 pb-20 p-8">
 
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 px-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-black text-slate-900 mb-1">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">
                         Financial Analytics
                     </h1>
-                    <p className="text-slate-400 text-sm font-medium">Detailed breakdown of your earnings and performance</p>
+                    <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">
+                        Performance metrics with dynamic commission tracking
+                    </p>
                 </div>
 
-                <div className="flex items-center gap-2 p-1 bg-white border border-slate-100 rounded-[2rem] shadow-sm self-start lg:self-auto">
-                    <div className="flex items-center px-4 gap-2">
-                        <LucideCalendar size={14} className="text-slate-400" />
-                        <PrimeCalendar
-                            value={new Date(dateRange.startDate)}
-                            onChange={(e) => {
-                                const date = e.value as Date;
-                                if (!date) return;
-                                const y = date.getFullYear();
-                                const m = date.getMonth();
-                                const start = getLocalISO(new Date(y, m, 1));
-                                const end = getLocalISO(new Date(y, m + 1, 0));
-                                setDateRange({ startDate: start, endDate: end });
-                            }}
-                            view="month"
-                            dateFormat="mm/yy"
-                            inputClassName="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none cursor-pointer min-w-[80px] p-0 text-center"
-                            className="border-none"
-                        />
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 p-1.5 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                        <div className="flex items-center px-4 gap-2">
+                            <LucideCalendar size={14} className="text-slate-400" />
+                            <PrimeCalendar
+                                value={new Date(dateRange.startDate + "T00:00:00")}
+                                onChange={(e) => {
+                                    const date = e.value as Date;
+                                    if (!date) return;
+                                    const y = date.getFullYear();
+                                    const m = date.getMonth();
+                                    const start = getLocalISO(new Date(y, m, 1));
+                                    const end = getLocalISO(new Date(y, m + 1, 0));
+                                    setDateRange({ startDate: start, endDate: end });
+                                }}
+                                view="month"
+                                dateFormat="mm/yy"
+                                inputClassName="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none cursor-pointer min-w-[80px] p-0 text-center"
+                                className="border-none"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
             {error ? (
-                <div className="mx-4 bg-red-500/10 border border-red-500/20 p-4 rounded-2xl">
-                    <p className="text-red-600 text-sm font-bold">{error}</p>
-                    <button onClick={() => fetchAnalytics(true)} className="text-red-600 text-xs mt-2 underline font-bold">Retry</button>
+                <div className="bg-red-50 border border-red-100 p-6 rounded-[2rem]">
+                    <p className="text-red-600 text-sm font-black uppercase tracking-widest">{error}</p>
+                    <button onClick={() => fetchAnalytics(true)} className="text-red-600 text-xs mt-3 underline font-black uppercase tracking-widest">Retry</button>
                 </div>
             ) : (
-                <>
-                    {/* Summary Cards */}
-                    {analytics && (
-                        <SummaryCards
-                            totalRevenue={analytics.totalBookingValue || 0}
-                            totalCollected={analytics.totalCollected || 0}
-                            totalBookings={analytics.totalBookings || 0}
-                            totalDue={(analytics.totalBookingValue || 0) - (analytics.totalCollected || 0)}
-                            totalCommission={analytics.totalCommission}
-                            currency={analytics.currency}
-                            hideVolume
-                        />
-                    )}
+                <div className="space-y-12">
+                    {/* Summary Section */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Monthly Financial Snapshot</h2>
+                            <div className="h-px bg-slate-100 w-full" />
+                        </div>
+                        {analytics && (
+                            <AnalyticsSummaryCards
+                                totalRevenue={analytics.totalBookingValue}
+                                avgCommission={analytics.totalBookingValue > 0 ? (analytics.totalCommission / analytics.totalBookingValue) * 100 : 0}
+                                totalCommission={analytics.totalCommission}
+                                revenueChange={analytics.deltas.revenueChange}
+                                avgCommissionChange={analytics.deltas.avgCommissionChange}
+                                commissionChange={analytics.deltas.commissionChange}
+                                currency={analytics.currency}
+                            />
+                        )}
+                    </div>
 
-                    {/* Performance Chart */}
-                    {performanceData && performanceData.length > 0 && (
+                    {/* Chart Section */}
+                    {analytics && (
                         <div className="px-4">
-                            <CommissionChart data={performanceData} currency={analytics?.currency} />
+                            <RevenueCommissionLineChart
+                                data={analytics.monthlyPerformance}
+                                currency={analytics.currency}
+                            />
                         </div>
                     )}
 
-                    {!performanceData || performanceData.length === 0 && (
+                    {/* Detailed Performance Section */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
+                        <TopPerformingVillasChart
+                            data={performanceData}
+                            currency={analytics?.currency}
+                        />
+                        <div className="space-y-8 flex flex-col justify-between">
+                            {analytics && <VolumeCards stats={analytics.volumeStats} />}
+                            <div className="bg-[#0D7A6B]/5 rounded-[2rem] p-8 border border-[#0D7A6B]/10 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-8 text-[#0D7A6B]/10 rotate-12 group-hover:rotate-0 transition-transform">
+                                    <Diamond size={80} />
+                                </div>
+                                <h4 className="text-sm font-black text-[#0D7A6B] uppercase tracking-widest mb-2">Pro Tip</h4>
+                                <p className="text-xs font-bold text-[#0D7A6B]/70 leading-relaxed max-w-[240px]">
+                                    Review your property-level yields below to identify high-performing villas for the upcoming peak season.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Table Section */}
+                    {performanceData && performanceData.length > 0 && (
                         <div className="px-4">
-                            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-12 text-center">
-                                <p className="text-slate-400 font-medium">No performance data available for this period</p>
+                            <VillaEarningTable
+                                data={performanceData}
+                                currency={analytics?.currency}
+                            />
+                        </div>
+                    )}
+
+                    {(!performanceData || performanceData.length === 0) && (
+                        <div className="px-4">
+                            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-16 text-center">
+                                <p className="text-slate-400 font-black uppercase tracking-widest">No transaction data available for this period</p>
                             </div>
                         </div>
                     )}
-                </>
+                </div>
             )}
         </div>
     );

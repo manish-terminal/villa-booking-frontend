@@ -17,6 +17,7 @@ import {
   Star,
   Menu,
   X,
+  MessageCircle,
 } from "lucide-react";
 
 export default function TabblLanding() {
@@ -36,8 +37,8 @@ export default function TabblLanding() {
           ========================================= */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-            ? "bg-white/90 backdrop-blur-xl shadow-[0_1px_0_rgba(0,0,0,0.04)] py-3"
-            : "bg-transparent py-5"
+          ? "bg-white/90 backdrop-blur-xl shadow-[0_1px_0_rgba(0,0,0,0.04)] py-3"
+          : "bg-transparent py-5"
           }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -85,6 +86,15 @@ export default function TabblLanding() {
             >
               Get Started
             </Link>
+            <a
+              href="https://wa.me/918920972146?text=Hi, I'd like to book a demo of tabbl."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-bold px-6 py-2.5 rounded-full hover:bg-emerald-100 transition-all"
+            >
+              <MessageCircle size={16} />
+              Book a Demo
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -134,6 +144,15 @@ export default function TabblLanding() {
                 >
                   Get Started
                 </Link>
+                <a
+                  href="https://wa.me/918920972146?text=Hi, I'd like to book a demo of tabbl."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-black px-6 py-3 rounded-full uppercase tracking-widest"
+                >
+                  <MessageCircle size={18} />
+                  Book a Demo
+                </a>
               </div>
             </div>
           </div>
@@ -196,6 +215,18 @@ export default function TabblLanding() {
                   className="group-hover:translate-x-1 transition-transform"
                 />
               </Link>
+              <a
+                href="https://wa.me/918920972146?text=Hi, I'd like to book a demo of tabbl."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-emerald-600 text-white text-sm font-black px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-emerald-500/20 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-widest"
+              >
+                Book a Demo
+                <MessageCircle
+                  size={16}
+                  className="group-hover:scale-110 transition-transform"
+                />
+              </a>
               <a
                 href="#how-it-works"
                 className="text-sm font-bold text-white/70 px-8 py-4 rounded-full border border-white/15 hover:bg-white/5 hover:border-white/25 transition-all flex items-center gap-2"
@@ -523,6 +554,17 @@ export default function TabblLanding() {
                   className="group-hover:translate-x-1 transition-transform"
                 />
               </Link>
+              <div className="mt-4">
+                <a
+                  href="https://wa.me/918920972146?text=Hi, I'd like to book a demo of tabbl."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/60 hover:text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <MessageCircle size={16} />
+                  Prefer a walk-through? Book a Demo
+                </a>
+              </div>
             </div>
           </div>
         </div>

@@ -27,6 +27,13 @@ export interface OwnerAnalytics {
     periodEnd: string;
 }
 
+export interface AgentAnalyticsDelta {
+    revenueChange: number;
+    commissionChange: number;
+    avgCommissionChange: number;
+    bookingsChange: number;
+}
+
 export interface AgentAnalytics {
     agentName: string;
     agentPhone: string;
@@ -34,6 +41,8 @@ export interface AgentAnalytics {
     totalBookingValue: number;
     totalCollected: number;
     totalCommission: number;
+    averageCommission: number;
+    deltas: AgentAnalyticsDelta;
     currency: string;
     bookingsByStatus: Record<string, number>;
     recentBookings: {
@@ -47,8 +56,22 @@ export interface AgentAnalytics {
         status: string;
         paymentStatus: string;
     }[];
+    monthlyPerformance: MonthlyPerformance[];
+    volumeStats: VolumeStats;
     periodStart: string;
     periodEnd: string;
+}
+
+export interface MonthlyPerformance {
+    month: string;
+    revenue: number;
+    commission: number;
+    bookingCount: number;
+}
+
+export interface VolumeStats {
+    highestMonth: string;
+    slowestMonth: string;
 }
 
 export interface PropertyPerformance {

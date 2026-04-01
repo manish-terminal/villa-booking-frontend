@@ -19,10 +19,23 @@ import {
   X,
   MessageCircle,
 } from "lucide-react";
+import { getUser, getRedirectPath, isAuthenticated } from "@/app/lib/auth";
+import { useRouter } from "next/navigation";
 
 export default function TabblLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      const user = getUser();
+      if (user) {
+        router.push(getRedirectPath(user));
+      }
+    }
+  }, [router]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);

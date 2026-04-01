@@ -75,7 +75,23 @@ export function removeRememberedPhone(): void {
 export function isAuthenticated(): boolean {
     const token = getToken();
     const user = getUser();
-    return !!token && !!user;
+    
+    if (!token || !user) return false;
+    
+    // Check if token is expired
+    return !isTokenExpired(token);
+}
+
+// Get session data
+export function getAuthSession(): { token: string; user: User } | null {
+    if (isAuthenticated()) {
+        const token = getToken();
+        const user = getUser();
+        if (token && user) {
+            return { token, user };
+        }
+    }
+    return null;
 }
 
 // Get user role-based redirect path

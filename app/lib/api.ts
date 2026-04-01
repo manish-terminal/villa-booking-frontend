@@ -58,6 +58,13 @@ class ApiClient {
         console.groupEnd();
 
         if (!response.ok) {
+            // Handle unauthorized access
+            if (response.status === 401 && typeof window !== "undefined") {
+                localStorage.removeItem("auth_token");
+                localStorage.removeItem("auth_user");
+                window.location.href = "/login";
+            }
+
             const error: APIError = {
                 error: data.error || data.message || "An error occurred",
                 message: data.message,

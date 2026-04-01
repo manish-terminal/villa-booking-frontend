@@ -13,6 +13,8 @@ import {
     setToken,
     setUser,
     getRedirectPath,
+    isAuthenticated,
+    getUser,
 } from "@/app/lib/auth";
 import { APIError } from "@/app/types/auth";
 
@@ -31,6 +33,16 @@ export default function LoginPage() {
     // User check state
 
     const [showPasswordOption, setShowPasswordOption] = useState(false);
+
+    // Check for existing session
+    useEffect(() => {
+        if (isAuthenticated()) {
+            const user = getUser();
+            if (user) {
+                router.push(getRedirectPath(user));
+            }
+        }
+    }, [router]);
 
     // Load remembered phone
     useEffect(() => {

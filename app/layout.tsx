@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "./components/Toast";
 import PWAInit from "./components/PWAInit";
+import SessionManager from "./components/SessionManager";
 import { PrimeReactProvider } from 'primereact/api';
 
 // PrimeReact CSS
@@ -52,6 +53,7 @@ export default function RootLayout({
           <ToastProvider>
             {children}
             <PWAInit />
+            <SessionManager />
           </ToastProvider>
         </PrimeReactProvider>
       </body>

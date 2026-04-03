@@ -410,6 +410,47 @@ class ApiClient {
         return await response.blob();
     }
 
+    // Generic blob download helper
+    private async exportBlob(endpoint: string): Promise<Blob> {
+        const url = `${this.baseUrl}${endpoint}`;
+        const headers: Record<string, string> = {};
+
+        const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers,
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw {
+                error: data.error || "Failed to download export",
+                statusCode: response.status
+            };
+        }
+
+        return await response.blob();
+    }
+
+    // Export bookings as Excel
+    async exportBookings(): Promise<Blob> {
+        return this.exportBlob("/analytics/export/bookings");
+    }
+
+    // Export users as Excel
+    async exportUsers(): Promise<Blob> {
+        return this.exportBlob("/analytics/export/users");
+    }
+
+    // Export agents as Excel
+    async exportAgents(): Promise<Blob> {
+        return this.exportBlob("/analytics/export/agents");
+    }
+
     // --- Notifications ---
 
     // List notifications

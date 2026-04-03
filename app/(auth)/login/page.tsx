@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import PhoneInput from "@/app/components/PhoneInput";
 import PasswordInput from "@/app/components/PasswordInput";
 import Button from "@/app/components/Button";
+import Logo from "@/app/components/Logo";
 import { useToast } from "@/app/components/Toast";
 import { api } from "@/app/lib/api";
 import {
@@ -169,9 +170,7 @@ export default function LoginPage() {
                 <div className="text-center mb-10">
                     <div className="mb-8 flex flex-col items-center">
                         <div className="w-16 h-16 rounded-[2rem] bg-[#0a192f] flex items-center justify-center mb-6 shadow-2xl transition-all hover:scale-110">
-                            <svg className="w-8 h-8 text-[#0f766e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
+                            <Logo size="xl" color="#0f766e" />
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                             <span className="text-lg">🇮🇳</span>

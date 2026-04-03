@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { getUser, logout } from "@/app/lib/auth";
 import { User } from "@/app/types/auth";
+import Logo from "@/app/components/Logo";
 
 interface NavItem {
     label: string;
@@ -118,9 +119,7 @@ export default function AgentLayout({ children }: { children: ReactNode }) {
                 {/* Logo */}
                 <div className="h-16 flex items-center px-6 border-b border-slate-200">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center mr-3 shadow-lg shadow-[var(--primary)]/10">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
+                        <Logo size="sm" color="white" />
                     </div>
                     <span className="font-bold text-xl text-[var(--foreground)] tracking-tight">Tabbl</span>
                 </div>

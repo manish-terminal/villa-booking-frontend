@@ -19,6 +19,7 @@ import {
   X,
   MessageCircle,
 } from "lucide-react";
+import Logo from "@/app/components/Logo";
 import { getUser, getRedirectPath, isAuthenticated } from "@/app/lib/auth";
 import { useRouter } from "next/navigation";
 
@@ -58,9 +59,7 @@ export default function TabblLanding() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-9 h-9 bg-[#0a192f] rounded-xl flex items-center justify-center shadow-lg shadow-[#0a192f]/20 group-hover:scale-110 transition-transform">
-              <span className="text-white font-black text-sm tracking-tighter">
-                t.
-              </span>
+              <Logo size="sm" color="white" />
             </div>
             <span className="text-xl font-black tracking-tight text-[#0a192f]">
               tabbl
@@ -593,9 +592,7 @@ export default function TabblLanding() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-black text-sm tracking-tighter">
-                    t.
-                  </span>
+                  <Logo size="sm" color="white" />
                 </div>
                 <span className="text-xl font-black tracking-tight">tabbl</span>
               </div>

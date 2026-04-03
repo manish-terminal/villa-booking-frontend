@@ -387,7 +387,9 @@ class ApiClient {
     // Export analytics as CSV
     async exportAnalytics(): Promise<Blob> {
         const url = `${this.baseUrl}/analytics/export`;
-        const headers: Record<string, string> = {};
+        const headers: Record<string, string> = {
+            "Accept": "application/octet-stream"
+        };
 
         const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
         if (token) {
@@ -413,7 +415,9 @@ class ApiClient {
     // Generic blob download helper
     private async exportBlob(endpoint: string): Promise<Blob> {
         const url = `${this.baseUrl}${endpoint}`;
-        const headers: Record<string, string> = {};
+        const headers: Record<string, string> = {
+            "Accept": "application/octet-stream"
+        };
 
         const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
         if (token) {
